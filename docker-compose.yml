@@ -1,0 +1,53 @@
+
+services:  
+  etcd:  
+    image: quay.io/coreos/etcd:v3.5.0  
+    networks: 
+      - graphql-federation
+    command:   
+      - /usr/local/bin/etcd  
+      - --name=etcd-1  
+      - --advertise-client-urls=http://etcd:2379  
+      - --listen-client-urls=http://0.0.0.0:2379  
+    ports:  
+      - "2379:2379"  
+    volumes:  
+      - etcd-data:/etcd-data  
+
+  gateway:  
+    build:   
+      context: ./gateway  
+      dockerfile: Dockerfile.gateway      
+    networks: 
+      - graphql-federation
+    ports:  
+      - "8080:8080"  
+    environment:  
+      - ETCD_ENDPOINTS=etcd:2379  
+      - ETCD_BASE_PATH=/services  
+    depends_on:  
+      - etcd 
+      - account
+
+  account:  
+    build:  
+      context: ./services/account
+      dockerfile: Dockerfile.dev  
+    networks: 
+      - graphql-federation
+    environment:  
+      - PORT=8081
+      - ETCD_ENDPOINTS=etcd:2379  
+      - ETCD_BASE_PATH=/services  
+      - SERVICE_NAME=account  
+    ports:  
+      - "8081:8081"  # Map to a different host port to avoid conflicts  
+    depends_on:  
+      - etcd  
+
+volumes:
+  etcd-data:
+
+networks:
+  graphql-federation:
+    driver: bridge

@@ -1,0 +1,22 @@
+
+scalar Time
+
+type User {
+  id: ID!
+  user_name: String!
+  email: String!
+  full_name: String!
+  created_at: Time!
+}
+
+ type Query {  
+  me: User  
+  user(id: ID!): User  
+  users: [User!]!  
+}  
+
+ type Mutation {  
+  createUser(username: String!, email: String!, fullName: String): User!  
+  updateUser(id: ID!, username: String, email: String, fullName: String): User!  
+  deleteUser(id: ID!): Boolean!  
+}  

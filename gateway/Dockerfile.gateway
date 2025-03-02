@@ -1,0 +1,37 @@
+FROM golang:1.24-alpine as builder
+
+WORKDIR /app
+
+RUN apk add --no-cache git ca-certificates
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN ls
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o gateway ./cmd/main/main.go  
+
+
+FROM alpine:3.19
+
+WORKDIR /app
+
+RUN apk add --no-cache ca-certificates tzdata  
+
+COPY --from=builder /app/gateway .  
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup  
+USER appuser  
+
+EXPOSE 8080  
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget -qO- http://localhost:8080/health || exit 1  
+
+ENTRYPOINT ["./gateway"]  
+
+# Default command line arguments  
+CMD ["--etcd-endpoints=etcd:2379", "--etcd-base-path=/services", "--listen=:8080"] 
