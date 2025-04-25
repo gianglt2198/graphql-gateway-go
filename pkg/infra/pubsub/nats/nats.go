@@ -1,0 +1,214 @@
+package psnats
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"sync"
+
+	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/pubsub"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/serdes"
+	"github.com/pingcap/errors"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
+
+	nats "github.com/nats-io/nats.go"
+)
+
+type (
+	natsProvider struct {
+		cfg     Config
+		nc      *nats.Conn
+		log     *monitoring.AppLogger
+		factory MessageFactory
+
+		subscriptions map[string]*nats.Subscription
+		chans         map[string]chan *nats.Msg
+
+		mu sync.RWMutex
+	}
+)
+
+var _ pubsub.Client = (*natsProvider)(nil)
+var _ pubsub.QueueSubscriber = (*natsProvider)(nil)
+
+type NatsParams struct {
+	fx.In
+
+	Log       *monitoring.AppLogger
+	Config    Config
+	SeqModels []serdes.Serializer
+}
+
+type NatsResult struct {
+	fx.Out
+
+	PubSubClient pubsub.Client
+}
+
+func New(params NatsParams) NatsResult {
+	provider := connect(params.Log, params.Config)
+	provider.factory = NewMessageFactory(provider, params.SeqModels)
+	return NatsResult{PubSubClient: provider}
+}
+
+func connect(log *monitoring.AppLogger, cfg Config) *natsProvider {
+	if !cfg.Enabled {
+		return nil
+	}
+
+	options := []nats.Option{
+		nats.Name(cfg.Name),
+		nats.PingInterval(cfg.PingInterval),
+	}
+
+	if cfg.AllowReconnect {
+		options = append(options, nats.MaxReconnects(cfg.MaxReconnects))
+		options = append(options, nats.ConnectHandler(func(c *nats.Conn) {
+			log.GetLogger().Info("Connected to nats successfully")
+		}))
+		options = append(options, nats.ReconnectHandler(func(c *nats.Conn) {
+			log.GetLogger().Info("Reconnected to nats server")
+		}))
+		options = append(options, nats.DisconnectErrHandler(func(c *nats.Conn, err error) {
+			log.GetLogger().Warn("Disconnected from nats server", zap.Error(err))
+		}))
+	}
+
+	nc, err := nats.Connect(cfg.Endpoint, options...)
+	if err != nil {
+		log.GetLogger().Panic("Connection error %s", zap.Error(err))
+	}
+
+	return &natsProvider{
+		cfg:           cfg,
+		nc:            nc,
+		log:           log,
+		subscriptions: make(map[string]*nats.Subscription),
+	}
+}
+
+func (n *natsProvider) Publish(ctx context.Context, pattern string, data []byte, attrs map[string]string) error {
+	encodedData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	msg, err := n.factory.NewMessage(pattern, encodedData, attrs)
+	if err != nil {
+		return errors.Wrap(err, "send event failed because encode data to json has error")
+	}
+
+	return n.nc.PublishMsg(msg)
+}
+
+func (n *natsProvider) Subscribe(ctx context.Context, topic string, handler pubsub.Handler) {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	if _, exists := n.subscriptions[topic]; exists {
+		n.log.GetLogger().Warn("Subscription already exists for topic", zap.String("topic", topic))
+		return
+	}
+
+	sub, err := n.nc.Subscribe(topic, func(msg *nats.Msg) {
+		err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: msg.Data})
+		if err != nil {
+			n.log.GetLogger().Error("Error processing message",
+				zap.String("topic", msg.Subject),
+				zap.Error(err))
+		}
+	})
+
+	if err != nil {
+		n.log.GetLogger().Error("Failed to subscribe to topic",
+			zap.String("topic", topic),
+			zap.Error(err))
+		return
+	}
+
+	n.subscriptions[topic] = sub
+
+	go func() {
+		<-ctx.Done()
+		_ = n.Unsubscribe(topic)
+	}()
+
+	n.log.GetLogger().Info("Subscribed to topic", zap.String("topic", topic))
+}
+
+func (n *natsProvider) ChanQueueSubscribe(ctx context.Context, topic string, group string, handler pubsub.Handler) error {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	if _, exists := n.subscriptions[topic]; exists {
+		n.log.GetLogger().Warn("Subscription already exists for topic", zap.String("topic", topic))
+		return nil
+	}
+
+	ch := make(chan *nats.Msg)
+
+	sub, err := n.nc.ChanQueueSubscribe(topic, group, ch)
+
+	if err != nil {
+		n.log.GetLogger().Error("Failed to subscribe to topic",
+			zap.String("topic", topic),
+			zap.Error(err))
+		return errors.Wrap(err, "failed to subscribe to topic"+topic)
+	}
+
+	n.subscriptions[topic] = sub
+	n.chans[topic] = ch
+
+	go func() {
+		<-ctx.Done()
+		_ = n.Unsubscribe(topic)
+	}()
+
+	n.log.GetLogger().Info("Subscribed to topic", zap.String("topic", topic))
+	return nil
+}
+
+func (n *natsProvider) Unsubscribe(topic string) error {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	if v, ok := n.chans[topic]; ok {
+		close(v)
+		delete(n.chans, topic)
+	}
+
+	sub, exists := n.subscriptions[topic]
+	if !exists {
+		return fmt.Errorf("no subscription found for topic: %s", topic)
+	}
+
+	err := sub.Unsubscribe()
+	if err != nil {
+		return fmt.Errorf("failed to unsubscribe from topic %s: %w", topic, err)
+	}
+
+	delete(n.subscriptions, topic)
+	n.log.GetLogger().Info("Unsubscribed from topic", zap.String("topic", topic))
+
+	return nil
+}
+
+func (n *natsProvider) Close() error {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	for topic, sub := range n.subscriptions {
+		if err := sub.Unsubscribe(); err != nil {
+			n.log.GetLogger().Error("Failed to unsubscribe during close",
+				zap.String("topic", topic),
+				zap.Error(err))
+		}
+	}
+
+	n.subscriptions = make(map[string]*nats.Subscription)
+
+	n.nc.Close()
+	return nil
+}

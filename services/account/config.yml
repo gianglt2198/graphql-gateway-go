@@ -1,0 +1,9 @@
+app:
+  name: account
+  env: development
+  port: 8081
+
+etcd:
+  enabled: true
+  endpoints: etcd:2379
+  base_path: /services

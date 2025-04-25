@@ -15,8 +15,14 @@ type User {
   users: [User!]!  
 }  
 
+input UserInput {
+  user_name: String!
+  email: String!
+  full_name: String
+}
+
  type Mutation {  
-  createUser(username: String!, email: String!, fullName: String): User!  
+  createUser(input: UserInput!): User!  
   updateUser(id: ID!, username: String, email: String, fullName: String): User!  
   deleteUser(id: ID!): Boolean!  
 }  

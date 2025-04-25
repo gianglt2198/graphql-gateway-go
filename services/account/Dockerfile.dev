@@ -12,7 +12,6 @@ COPY . .
 
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o account-service ./cmd/main/main.go
 
-
 FROM alpine:3.19
 
 WORKDIR /app

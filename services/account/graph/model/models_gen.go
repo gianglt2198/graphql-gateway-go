@@ -12,10 +12,25 @@ type Mutation struct {
 type Query struct {
 }
 
+type Role struct {
+	ID       string `json:"id"`
+	RoleName string `json:"role_name"`
+}
+
+type RoleInput struct {
+	RoleName string `json:"role_name"`
+}
+
 type User struct {
 	ID        string    `json:"id"`
 	UserName  string    `json:"user_name"`
 	Email     string    `json:"email"`
 	FullName  string    `json:"full_name"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type UserInput struct {
+	UserName string  `json:"user_name"`
+	Email    string  `json:"email"`
+	FullName *string `json:"full_name,omitempty"`
 }
