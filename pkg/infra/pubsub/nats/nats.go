@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/pubsub"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/serdes"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/utils"
 	"github.com/pingcap/errors"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -32,6 +34,7 @@ type (
 
 var _ pubsub.Client = (*natsProvider)(nil)
 var _ pubsub.QueueSubscriber = (*natsProvider)(nil)
+var _ pubsub.Broker[nats.Msg] = (*natsProvider)(nil)
 
 type NatsParams struct {
 	fx.In
@@ -66,19 +69,19 @@ func connect(log *monitoring.AppLogger, cfg Config) *natsProvider {
 	if cfg.AllowReconnect {
 		options = append(options, nats.MaxReconnects(cfg.MaxReconnects))
 		options = append(options, nats.ConnectHandler(func(c *nats.Conn) {
-			log.GetLogger().Info("Connected to nats successfully")
+			log.Info("Connected to nats successfully")
 		}))
 		options = append(options, nats.ReconnectHandler(func(c *nats.Conn) {
-			log.GetLogger().Info("Reconnected to nats server")
+			log.Info("Reconnected to nats server")
 		}))
 		options = append(options, nats.DisconnectErrHandler(func(c *nats.Conn, err error) {
-			log.GetLogger().Warn("Disconnected from nats server", zap.Error(err))
+			log.Warn("Disconnected from nats server", zap.Error(err))
 		}))
 	}
 
 	nc, err := nats.Connect(cfg.Endpoint, options...)
 	if err != nil {
-		log.GetLogger().Panic("Connection error %s", zap.Error(err))
+		log.Panic("Connection error %s", zap.Error(err))
 	}
 
 	return &natsProvider{
@@ -138,7 +141,7 @@ func (n *natsProvider) Subscribe(ctx context.Context, topic string, handler pubs
 	n.log.GetLogger().Info("Subscribed to topic", zap.String("topic", topic))
 }
 
-func (n *natsProvider) ChanQueueSubscribe(ctx context.Context, topic string, group string, handler pubsub.Handler) error {
+func (n *natsProvider) QueueSubscribe(ctx context.Context, topic string, group string, handler pubsub.Handler) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
@@ -160,6 +163,18 @@ func (n *natsProvider) ChanQueueSubscribe(ctx context.Context, topic string, gro
 
 	n.subscriptions[topic] = sub
 	n.chans[topic] = ch
+
+	go func() {
+		defer utils.RecoverFn()
+		for msg := range ch {
+			err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: msg.Data})
+			if err != nil {
+				n.log.GetLogger().Error("Error processing message",
+					zap.String("topic", msg.Subject),
+					zap.Error(err))
+			}
+		}
+	}()
 
 	go func() {
 		<-ctx.Done()
@@ -211,4 +226,14 @@ func (n *natsProvider) Close() error {
 
 	n.nc.Close()
 	return nil
+}
+
+func (n *natsProvider) Request(ctx context.Context, pattern string, data any, attrs map[string]string, timeout time.Duration) (*nats.Msg, error) {
+	msg, err := n.factory.NewMessage(pattern, data, attrs)
+	if err != nil {
+		return nil, errors.Wrap(err, "new message error")
+	}
+	headers := getHeaders(msg)
+	n.log.DebugC(ctx, "request to subject", zap.String("subject", msg.Subject), zap.String("type", "request"), zap.Any("headers", headers))
+	return n.nc.RequestMsg(msg, timeout*time.Second)
 }

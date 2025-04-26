@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"time"
 )
 
 type (
@@ -17,8 +18,13 @@ type (
 	}
 
 	QueueSubscriber interface {
-		ChanQueueSubscribe(ctx context.Context, topic string, group string, handler Handler) error
+		QueueSubscribe(ctx context.Context, topic string, group string, handler Handler) error
 		Unsubscribe(topic string) error
+		Close() error
+	}
+
+	Broker[T any] interface {
+		Request(ctx context.Context, pattern string, data any, attrs map[string]string, timeout time.Duration) (*T, error)
 		Close() error
 	}
 
@@ -32,10 +38,5 @@ type (
 	Client interface {
 		Publisher
 		Subscriber
-	}
-
-	Broker[T any] interface {
-		Publisher
-		QueueSubscriber
 	}
 )
