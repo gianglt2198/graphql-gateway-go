@@ -27,3 +27,12 @@ func GetUserIDFromCtx(ctx context.Context) string {
 
 	return userID.(string)
 }
+
+func ApplyRequestIDWithContext(ctx context.Context) (context.Context, string) {
+	if requestID := GetRequestIDFromCtx(ctx); requestID != "" {
+		return ctx, requestID
+	}
+
+	requestID := NewRequestID()
+	return context.WithValue(ctx, common.KEY_REQUEST_ID, requestID), requestID
+}

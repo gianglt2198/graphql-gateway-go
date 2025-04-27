@@ -2,7 +2,6 @@ package psnats
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -69,19 +68,19 @@ func connect(log *monitoring.AppLogger, cfg Config) *natsProvider {
 	if cfg.AllowReconnect {
 		options = append(options, nats.MaxReconnects(cfg.MaxReconnects))
 		options = append(options, nats.ConnectHandler(func(c *nats.Conn) {
-			log.Info("Connected to nats successfully")
+			log.GetLogger().Info("Connected to nats successfully")
 		}))
 		options = append(options, nats.ReconnectHandler(func(c *nats.Conn) {
-			log.Info("Reconnected to nats server")
+			log.GetLogger().Info("Reconnected to nats server")
 		}))
 		options = append(options, nats.DisconnectErrHandler(func(c *nats.Conn, err error) {
-			log.Warn("Disconnected from nats server", zap.Error(err))
+			log.GetLogger().Warn("Disconnected from nats server", zap.Error(err))
 		}))
 	}
 
 	nc, err := nats.Connect(cfg.Endpoint, options...)
 	if err != nil {
-		log.Panic("Connection error %s", zap.Error(err))
+		log.GetLogger().Panic("Connection error %s", zap.Error(err))
 	}
 
 	return &natsProvider{
@@ -93,12 +92,7 @@ func connect(log *monitoring.AppLogger, cfg Config) *natsProvider {
 }
 
 func (n *natsProvider) Publish(ctx context.Context, pattern string, data []byte, attrs map[string]string) error {
-	encodedData, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	msg, err := n.factory.NewMessage(pattern, encodedData, attrs)
+	msg, err := n.factory.NewMessage(pattern, data, attrs)
 	if err != nil {
 		return errors.Wrap(err, "send event failed because encode data to json has error")
 	}
@@ -116,6 +110,7 @@ func (n *natsProvider) Subscribe(ctx context.Context, topic string, handler pubs
 	}
 
 	sub, err := n.nc.Subscribe(topic, func(msg *nats.Msg) {
+
 		err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: msg.Data})
 		if err != nil {
 			n.log.GetLogger().Error("Error processing message",

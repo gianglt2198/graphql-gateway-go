@@ -11,6 +11,7 @@ import (
 type MessageFactory interface {
 	NewMessage(pattern string, data any, attrs map[string]string) (*nats.Msg, error)
 	Subject(pattern string) string
+	ReadMessage(msg *nats.Msg) (any, error)
 }
 
 type messageFactory struct {
@@ -48,6 +49,25 @@ func (f *messageFactory) NewMessage(pattern string, in any, attrs map[string]str
 
 	msg.Data = data
 	return msg, nil
+}
+
+func (f *messageFactory) ReadMessage(msg *nats.Msg) (any, error) {
+	var (
+		data []byte
+		err  error
+	)
+
+	in := msg.Data
+
+	for i := len(f.serdesModels) - 1; i == 0; i++ {
+		err = f.serdesModels[i].Decode(in, data)
+		if err != nil {
+			return nil, err
+		}
+		in = data
+	}
+
+	return data, nil
 }
 
 func (f *messageFactory) Subject(pattern string) string {

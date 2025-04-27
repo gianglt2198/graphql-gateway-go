@@ -9,18 +9,39 @@ import (
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	"github.com/google/uuid"
 	redis "github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
 type redisCache struct {
 	client    *redis.Client
-	config    *Config
+	config    Config
 	namespace string
 }
 
 var _ cache.Cache = (*redisCache)(nil)
 
-func New(log *monitoring.AppLogger, cfg *Config) *redisCache {
+type RedisParams struct {
+	fx.In
+
+	Log *monitoring.AppLogger
+	Cfg Config
+}
+
+type RedisResult struct {
+	fx.Out
+
+	Redis *redisCache
+}
+
+func New(params RedisParams) RedisResult {
+	provider := connect(params.Log, params.Cfg)
+	return RedisResult{
+		Redis: provider,
+	}
+}
+
+func connect(log *monitoring.AppLogger, cfg Config) *redisCache {
 	if !cfg.Enabled {
 		return nil
 	}

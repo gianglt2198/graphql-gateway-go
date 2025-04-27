@@ -12,7 +12,7 @@ import (
 type GzipSerializer struct {
 	writer *gzip.Writer
 	reader *gzip.Reader
-	sync.Mutex
+	mu     sync.Mutex
 }
 
 var _ Serializer = (*GzipSerializer)(nil)
@@ -27,8 +27,8 @@ func NewGzipSerializer() Serializer {
 }
 
 func (m *GzipSerializer) Encode(data any) ([]byte, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
 	var serialized bytes.Buffer
 	var err error
@@ -57,8 +57,8 @@ func (m *GzipSerializer) Encode(data any) ([]byte, error) {
 }
 
 func (m *GzipSerializer) Decode(in []byte, out any) error {
-	m.Lock()
-	defer m.Unlock()
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
 	compressed := bytes.NewReader(in)
 

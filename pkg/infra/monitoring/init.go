@@ -101,7 +101,7 @@ func newOTel(log *AppLogger, ccfg config.Config, cfg MonitoringConfig) *monitori
 
 	// Verbose error handling
 	handleErr := func(inErr error) {
-		log.Error("OpenTelemetry setup error: %v", zap.Error(inErr))
+		log.GetLogger().Error("OpenTelemetry setup error: %v", zap.Error(inErr))
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
@@ -113,7 +113,7 @@ func newOTel(log *AppLogger, ccfg config.Config, cfg MonitoringConfig) *monitori
 	tracerProvider, err := NewTraceProvider(ctx, ccfg.Name, cfg.Endpoint)
 	if err != nil {
 		handleErr(err)
-		log.Fatal("Monitoring Failed!", zap.Error(err))
+		log.GetLogger().Fatal("Monitoring Failed!", zap.Error(err))
 	}
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
@@ -122,7 +122,7 @@ func newOTel(log *AppLogger, ccfg config.Config, cfg MonitoringConfig) *monitori
 	meterProvider, err := NewMeterProvider(ctx, ccfg.Name, cfg.Endpoint)
 	if err != nil {
 		handleErr(err)
-		log.Fatal("Monitoring Failed!", zap.Error(err))
+		log.GetLogger().Fatal("Monitoring Failed!", zap.Error(err))
 	}
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
