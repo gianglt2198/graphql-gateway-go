@@ -1,0 +1,7 @@
+.vscode
+
+/ent/*
+/graph/generated
+
+# But not these files...
+!ent/schema/

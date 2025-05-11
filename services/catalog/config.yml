@@ -1,0 +1,19 @@
+common:
+  name: catalog
+
+logger: 
+  env: dev
+
+db:
+  enabled: true
+  driver: sqlite3
+  connection: file:ent?mode=memory&cache=shared&_fk=1
+
+gql:
+  enabled: true
+  http: 
+    enabled: true
+    port: 7000
+    path: /query
+    subscription_path: /subscription
+    playground_enabled: true
