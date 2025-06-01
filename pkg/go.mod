@@ -10,7 +10,6 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/gofiber/utils v0.0.10
 	github.com/google/uuid v1.6.0
-	github.com/joho/godotenv v1.5.1
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/nats-io/nats.go v1.39.1
 	github.com/pingcap/errors v0.11.4
