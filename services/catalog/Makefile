@@ -1,11 +1,12 @@
-.PHONY: int generate run clean
+.PHONY: int generate run clean migrate-new
 
 init:
 	@go install github.com/air-verse/air@latest
+	@curl -sSf https://atlasgo.sh | sh
 
 structure:
 	@mkdir -p config
-	@mkdir -p cmd/server
+	@mkdir -p cmd/app
 	@mkdir -p cmd/generate
 	@mkdir -p migrations
 	@mkdir -p internal/services
@@ -29,10 +30,16 @@ run:
 test:
 	@go test ./...
 
-clean:
-	@git clean -f -X -d generated/
-
 lint:
 	@echo "Running golangci-lint ..."
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run --fix ./...
 	@echo "golangci-lint, done!"
+
+clean: 
+	@cd ent && find . -not -path "*schema/*" -delete
+	@cd graph && rm -rf generated
+
+# generate a blank migration
+migrate-new:
+	@read -p "Enter migration name (e.g., create-todo-table): " name; \
+		go run cmd/migrate/main.go add $$name

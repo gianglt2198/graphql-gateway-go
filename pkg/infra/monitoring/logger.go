@@ -11,19 +11,16 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/gianglt2198/graphql-gateway-go/pkg/common"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/utils"
 )
-
-type LoggerConfig struct {
-	Env string `yaml:"env,omitempty" envDefault:"dev"`
-}
 
 type AppLogger struct {
 	serviceName string
 	logger      *zap.Logger
 }
 
-func NewLogger(cfg LoggerConfig, serviceName string) *AppLogger {
+func NewLogger(cfg config.BaseConfig) *AppLogger {
 	var coreArr []zapcore.Core
 
 	// Log levels
@@ -57,7 +54,7 @@ func NewLogger(cfg LoggerConfig, serviceName string) *AppLogger {
 
 	log.WithOptions()
 	return &AppLogger{
-		serviceName: serviceName,
+		serviceName: cfg.Name,
 		logger:      log,
 	}
 }

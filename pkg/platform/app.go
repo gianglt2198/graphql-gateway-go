@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/gianglt2198/graphql-gateway-go/pkg"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/cache"
 	credis "github.com/gianglt2198/graphql-gateway-go/pkg/infra/cache/redis"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
@@ -23,17 +23,17 @@ type Application interface {
 	Start(hooks ...fx.Hook)
 }
 
-func buildOptions[T any](config *pkg.Config[T], opts ...fx.Option) []fx.Option {
-	logger := monitoring.NewLogger(config.Logger, config.Cfg.Name)
+func buildOptions[T any](cfg *config.Config[T], opts ...fx.Option) []fx.Option {
+	logger := monitoring.NewLogger(cfg.Base)
 
 	// Base fx options
 	baseOpts := []fx.Option{
 		// Supply configs
-		fx.Supply(config.Cfg),
-		fx.Supply(config.Logger),
-		fx.Supply(config.Redis),
-		fx.Supply(config.Nats),
-		fx.Supply(config.Intermediary),
+		fx.Supply(cfg.Base),
+		fx.Supply(cfg.DB),
+		fx.Supply(cfg.Redis),
+		fx.Supply(cfg.Nats),
+		fx.Supply(cfg.Intermediary),
 
 		// Supply Logger
 		fx.Supply(logger),
@@ -65,7 +65,7 @@ func postBuild() []fx.Option {
 	}
 }
 
-func CreateApplication[T any](config *pkg.Config[T], fxOptions ...fx.Option) Application {
+func CreateApplication[T any](config *config.Config[T], fxOptions ...fx.Option) Application {
 	return &application{
 		options: append(buildOptions(config, fxOptions...), postBuild()...),
 	}

@@ -12,14 +12,23 @@ import (
 	"github.com/gianglt2198/graphql-gateway-go/pkg/modules/db/pnnid"
 )
 
-type Product struct {
+type Category struct {
 	ent.Schema
 }
 
-func (Product) Fields() []ent.Field {
+func (Category) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
-		field.Float("price"),
+		field.Float("description"),
+		field.Enum("status").
+			NamedValues(
+				"Active", "ACTIVE",
+				"Inactive", "INACTIVE",
+			).
+			Default("ACTIVE").
+			Annotations(
+				entgql.OrderField("STATUS"),
+			),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable().
@@ -29,13 +38,13 @@ func (Product) Fields() []ent.Field {
 	}
 }
 
-func (Product) Mixin() []ent.Mixin {
+func (Category) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		pnnid.MixinWithPrefix("prd"),
+		pnnid.MixinWithPrefix("ctg"),
 	}
 }
 
-func (Product) Annotations() []schema.Annotation {
+func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.QueryField(),
 		entgql.Mutations(),
@@ -44,9 +53,9 @@ func (Product) Annotations() []schema.Annotation {
 	}
 }
 
-func (Product) Edges() []ent.Edge {
+func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("products_categories", Category.Type).
+		edge.From("categories_products", Product.Type).Ref("products_categories").
 			Annotations(
 				entgql.RelayConnection(),
 			),

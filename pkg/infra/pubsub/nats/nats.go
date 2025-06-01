@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/pubsub"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/serdes"
@@ -19,7 +20,7 @@ import (
 
 type (
 	natsProvider struct {
-		cfg     Config
+		cfg     config.NatsConfig
 		nc      *nats.Conn
 		log     *monitoring.AppLogger
 		factory MessageFactory
@@ -39,27 +40,17 @@ type NatsParams struct {
 	fx.In
 
 	Log       *monitoring.AppLogger
-	Config    Config
+	Config    config.NatsConfig
 	SeqModels []serdes.Serializer
 }
 
-type NatsResult struct {
-	fx.Out
-
-	PubSubClient pubsub.Client
-}
-
-func New(params NatsParams) NatsResult {
+func New(params NatsParams) *natsProvider {
 	provider := connect(params.Log, params.Config)
 	provider.factory = NewMessageFactory(provider, params.SeqModels)
-	return NatsResult{PubSubClient: provider}
+	return provider
 }
 
-func connect(log *monitoring.AppLogger, cfg Config) *natsProvider {
-	if !cfg.Enabled {
-		return nil
-	}
-
+func connect(log *monitoring.AppLogger, cfg config.NatsConfig) *natsProvider {
 	options := []nats.Option{
 		nats.Name(cfg.Name),
 		nats.PingInterval(cfg.PingInterval),

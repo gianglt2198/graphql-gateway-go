@@ -10,7 +10,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
-	"github.com/nats-io/nats.go"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/fx"
@@ -18,26 +17,25 @@ import (
 
 	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
-	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/pubsub"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/utils"
 )
 
 type GqlServer struct {
-	log          *monitoring.AppLogger
-	ccfg         config.Config
-	gcfg         GqlServiceConfig
-	execSchema   graphql.ExecutableSchema
-	brokerClient pubsub.Broker[nats.Msg]
+	log        *monitoring.AppLogger
+	ccfg       config.BaseConfig
+	gcfg       config.GqlServiceConfig
+	execSchema graphql.ExecutableSchema
+	// brokerClient pubsub.Broker[nats.Msg]
 }
 
 type GqlServerParams struct {
 	fx.In
 
-	Log          *monitoring.AppLogger
-	CCfg         config.Config
-	GCfg         GqlServiceConfig
-	ExecSchema   graphql.ExecutableSchema
-	BrokerClient pubsub.Broker[nats.Msg]
+	Log        *monitoring.AppLogger
+	CCfg       config.BaseConfig
+	GCfg       config.GqlServiceConfig
+	ExecSchema graphql.ExecutableSchema
+	// BrokerClient pubsub.Broker[nats.Msg]
 }
 
 type GqlServerResult struct {
@@ -49,11 +47,11 @@ type GqlServerResult struct {
 func NewGqlServer(params GqlServerParams) GqlServerResult {
 	return GqlServerResult{
 		Server: &GqlServer{
-			log:          params.Log,
-			ccfg:         params.CCfg,
-			gcfg:         params.GCfg,
-			execSchema:   params.ExecSchema,
-			brokerClient: params.BrokerClient,
+			log:        params.Log,
+			ccfg:       params.CCfg,
+			gcfg:       params.GCfg,
+			execSchema: params.ExecSchema,
+			// brokerClient: params.BrokerClient,
 		},
 	}
 }
@@ -76,14 +74,13 @@ func (g *GqlServer) Start() error {
 		return handleGraphqlError(ctx, NewError(e.Error(), InternalServerErrorCode))
 	})
 
-	if g.gcfg.GqlHttp.Enabled {
+	if g.gcfg.Http.Enabled {
 		go func() {
-			g.log.GetLogger().Info(fmt.Sprintf("connect to :%v%v for GraqhQL Playground", g.gcfg.GqlHttp.Port, g.gcfg.GqlHttp.Playground.Path))
-			if err := registerWithSchema(registerSchema{
-				GraphqlPath:       g.gcfg.GqlHttp.Path,
-				GraphqlPort:       g.gcfg.GqlHttp.Port,
-				PlaygroundPath:    g.gcfg.GqlHttp.Playground.Path,
-				PlaygroundEnabled: g.gcfg.GqlHttp.Playground.Enabled,
+			g.log.GetLogger().Info(fmt.Sprintf("connect to :%v%v for GraqhQL", g.gcfg.Http.Port, g.gcfg.Http.Path))
+			if err := registerWithSchema(g.log, registerSchema{
+				GraphqlPath:       g.gcfg.Http.Path,
+				GraphqlPort:       g.gcfg.Http.Port,
+				PlaygroundEnabled: g.gcfg.Http.PlaygroundEnabled,
 				Debug:             g.gcfg.Debug,
 				Schema:            g.execSchema,
 			}); err != nil {
@@ -96,7 +93,8 @@ func (g *GqlServer) Start() error {
 }
 
 func (g *GqlServer) Stop() error {
-	return g.brokerClient.Close()
+	// return g.brokerClient.Close()
+	return nil
 }
 
 func handleGraphqlError(ctx context.Context, e error) *gqlerror.Error {

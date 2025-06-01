@@ -7,6 +7,7 @@ package resolvers
 import (
 	"context"
 
+	"entgo.io/contrib/entgql"
 	"github.com/gianglt2198/graphql-gateway-go/catalog/ent"
 	"github.com/gianglt2198/graphql-gateway-go/catalog/graph/generated"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/modules/db/pnnid"
@@ -22,9 +23,22 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pnnid.ID) ([]ent.Noder,
 	return r.client.Noders(ctx, ids, ent.WithNodeType(ent.IDToType))
 }
 
+// Categories is the resolver for the categories field.
+func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[pnnid.ID], first *int, before *entgql.Cursor[pnnid.ID], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
+	return r.client.Category.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithCategoryOrder(orderBy),
+			ent.WithCategoryFilter(where.Filter),
+		)
+}
+
 // Products is the resolver for the products field.
-func (r *queryResolver) Products(ctx context.Context) ([]*ent.Product, error) {
-	return r.client.Product.Query().All(ctx)
+func (r *queryResolver) Products(ctx context.Context, after *entgql.Cursor[pnnid.ID], first *int, before *entgql.Cursor[pnnid.ID], last *int, orderBy []*ent.ProductOrder, where *ent.ProductWhereInput) (*ent.ProductConnection, error) {
+	return r.client.Debug().Product.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithProductOrder(orderBy),
+			ent.WithProductFilter(where.Filter),
+		)
 }
 
 // Query returns generated.QueryResolver implementation.

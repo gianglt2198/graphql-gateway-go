@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/pubsub"
 	"go.uber.org/fx"
@@ -16,7 +17,7 @@ type (
 	intermediary struct {
 		provider pubsub.Client
 		client   EtcdClient[ServiceInfo]
-		cfg      IntermediaryConfig
+		cfg      config.IntermediaryConfig
 	}
 
 	Intermediary interface {
@@ -38,7 +39,7 @@ type IntermediaryParams struct {
 	fx.In
 
 	Log      *monitoring.AppLogger
-	Config   IntermediaryConfig
+	Config   config.IntermediaryConfig
 	Provider pubsub.Client
 }
 
@@ -48,8 +49,8 @@ type IntermediaryResutlt struct {
 	Client Intermediary
 }
 
-func NewIntermediary(log *monitoring.AppLogger, cfg IntermediaryConfig, provider pubsub.Client) IntermediaryResutlt {
-	client := NewEtcdClient[ServiceInfo](log, cfg.Config)
+func NewIntermediary(log *monitoring.AppLogger, cfg config.IntermediaryConfig, provider pubsub.Client) IntermediaryResutlt {
+	client := NewEtcdClient[ServiceInfo](log, cfg.EtcdConfig)
 
 	return IntermediaryResutlt{Client: &intermediary{
 		client:   client,

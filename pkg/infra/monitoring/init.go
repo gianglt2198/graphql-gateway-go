@@ -13,16 +13,11 @@ import (
 	"go.uber.org/zap"
 )
 
-type MonitoringConfig struct {
-	Enabled  bool   `yaml:"enabled,omitempty" envDefault:"false"`
-	Endpoint string `yaml:"endpoint,omitempty" envDefault:"localhost:4317"`
-}
-
 type (
 	monitoring struct {
 		log  *AppLogger
-		mcfg MonitoringConfig
-		ccfg config.Config
+		mcfg config.MonitoringConfig
+		ccfg config.BaseConfig
 
 		tracerProvider trace.TracerProvider
 		meterProvider  metric2.MeterProvider
@@ -56,8 +51,8 @@ type MonitoringParams struct {
 	fx.In
 
 	Log  *AppLogger
-	MCfg MonitoringConfig
-	CCfg config.Config
+	MCfg config.MonitoringConfig
+	CCfg config.BaseConfig
 }
 
 type MonitoringResult struct {
@@ -75,7 +70,7 @@ func SetupOTelSDK(params MonitoringParams) MonitoringResult {
 	}
 }
 
-func newOTel(log *AppLogger, ccfg config.Config, cfg MonitoringConfig) *monitoring {
+func newOTel(log *AppLogger, ccfg config.BaseConfig, cfg config.MonitoringConfig) *monitoring {
 	if !cfg.Enabled {
 		return nil
 	}

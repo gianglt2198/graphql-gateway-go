@@ -1,13 +1,11 @@
 common:
   name: catalog
-
-logger: 
   env: dev
 
 db:
   enabled: true
-  driver: sqlite3
-  connection: file:ent?mode=memory&cache=shared&_fk=1
+  driver: postgres
+  connection: "postgres://username:password@localhost:5433/postgres?sslmode=disable"
 
 gql:
   enabled: true

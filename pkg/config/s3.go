@@ -1,4 +1,4 @@
-package s3
+package config
 
 type S3Config struct {
 	Enabled bool   `yaml:"enabled" envDefault:"false"`

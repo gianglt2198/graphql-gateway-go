@@ -1,4 +1,4 @@
-.PHONY: structure
+.PHONY: structure dependencies
 
 structure:
 	@mkdir -p gateway
@@ -14,3 +14,4 @@ dependencies:
 
 generate:
 	@cd gateway && go run github.com/99designs/gqlgen generate
+

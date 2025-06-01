@@ -1,0 +1,37 @@
+version: "3"
+services:
+  nats:
+    image: nats
+    container_name: my-nats
+    restart: always
+    networks:
+      - gqlserver
+    ports:
+      - "4223:4222"
+    volumes:
+      - ./.cfg/nats.conf:/etc/nats/nats.conf
+      - vnats:/data
+    command: "-c /etc/nats/nats.conf"
+
+  db:
+    image: postgres
+    container_name: my-db
+    restart: always
+    networks:
+      - gqlserver
+    ports:
+      - "5433:5432"
+    volumes:
+      - vdb:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+volumes:
+  vdb:
+  vnats:
+
+networks:
+  gqlserver:
+    driver: bridge

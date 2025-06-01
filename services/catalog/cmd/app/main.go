@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
 	coreconfig "github.com/gianglt2198/graphql-gateway-go/pkg/config"
@@ -13,16 +15,13 @@ import (
 )
 
 func main() {
-	cfg, err := coreconfig.LoadConfig[config.AppConfig]()
-	if err != nil {
-		panic(err)
-	}
+	cfg := coreconfig.LoadConfig[config.AppConfig]()
 
 	app := platform.CreateApplication(
 		cfg,
 		db.Module(),
 		graph.Module(),
-		gql.Module(cfg.Cfg, cfg.Gql),
+		gql.Module(cfg.Base, cfg.GQL),
 	)
 
 	app.Start()

@@ -8,6 +8,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/modules/db"
 )
 
 func main() {
@@ -24,13 +25,11 @@ func main() {
 	}
 	opts := []entc.Option{
 		entc.Extensions(ex),
+		db.RepositoryExtention(),
 	}
 
 	templates := entgql.AllTemplates
-	templates = append(templates, gen.MustParse(
-		gen.NewTemplate("pnnid.tmpl").
-			ParseFiles("./cmd/generate/template/pnnid.tmpl")),
-	)
+	templates = append(templates, db.PNNIDTemplate)
 
 	if err := entc.Generate("./ent/schema", &gen.Config{
 		Target:    "./ent",

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/cache"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	"github.com/google/uuid"
@@ -15,7 +16,7 @@ import (
 
 type redisCache struct {
 	client    *redis.Client
-	config    Config
+	config    config.RedisConfig
 	namespace string
 }
 
@@ -25,27 +26,15 @@ type RedisParams struct {
 	fx.In
 
 	Log *monitoring.AppLogger
-	Cfg Config
+	Cfg config.RedisConfig
 }
 
-type RedisResult struct {
-	fx.Out
-
-	Redis *redisCache
-}
-
-func New(params RedisParams) RedisResult {
+func New(params RedisParams) *redisCache {
 	provider := connect(params.Log, params.Cfg)
-	return RedisResult{
-		Redis: provider,
-	}
+	return provider
 }
 
-func connect(log *monitoring.AppLogger, cfg Config) *redisCache {
-	if !cfg.Enabled {
-		return nil
-	}
-
+func connect(log *monitoring.AppLogger, cfg config.RedisConfig) *redisCache {
 	opts, err := redis.ParseURL(cfg.URL)
 	if err != nil {
 		log.GetLogger().Fatal("Failed to parse Redis URL", zap.Error(err))

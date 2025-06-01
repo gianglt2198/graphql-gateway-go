@@ -5,8 +5,8 @@ import (
 
 	"github.com/gianglt2198/graphql-gateway-go/catalog/ent"
 	"github.com/gianglt2198/graphql-gateway-go/catalog/ent/migrate"
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
-	"github.com/gianglt2198/graphql-gateway-go/pkg/modules/db"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -14,7 +14,7 @@ import (
 type DBParams struct {
 	fx.In
 	// Configs
-	Db db.Config
+	Db config.DBConfig
 	// Common
 	Log *monitoring.AppLogger
 	// Services

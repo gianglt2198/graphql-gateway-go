@@ -12,11 +12,11 @@ import (
 	"github.com/gianglt2198/graphql-gateway-go/pkg/utils/async"
 )
 
-func Module(cfg config.Config, scfg service.GqlServiceConfig) fx.Option {
+func Module(cfg config.BaseConfig, scfg config.GqlServiceConfig) fx.Option {
 	return fx.Module(cfg.Name, buildServerModuleOptions(scfg)...)
 }
 
-func buildServerModuleOptions(cfg service.GqlServiceConfig) []fx.Option {
+func buildServerModuleOptions(cfg config.GqlServiceConfig) []fx.Option {
 	opts := []fx.Option{}
 
 	if !cfg.Enabled {
@@ -27,7 +27,7 @@ func buildServerModuleOptions(cfg service.GqlServiceConfig) []fx.Option {
 	return opts
 }
 
-func startGraphql(log *monitoring.AppLogger, server service.GqlServer, lifecycle fx.Lifecycle) {
+func startGraphql(log *monitoring.AppLogger, server *service.GqlServer, lifecycle fx.Lifecycle) {
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {

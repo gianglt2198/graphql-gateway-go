@@ -13,19 +13,19 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/rs/cors"
 
+	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/utils"
 )
 
 type registerSchema struct {
 	GraphqlPath       string
 	GraphqlPort       int
-	PlaygroundPath    string
 	PlaygroundEnabled bool
 	Debug             bool
 	Schema            graphql.ExecutableSchema
 }
 
-func registerWithSchema(cfg registerSchema) error {
+func registerWithSchema(log *monitoring.AppLogger, cfg registerSchema) error {
 	srv := handler.New(cfg.Schema)
 	srv.AddTransport(transport.POST{})
 	srv.AddTransport(transport.Options{})
@@ -39,13 +39,17 @@ func registerWithSchema(cfg registerSchema) error {
 
 	if cfg.PlaygroundEnabled {
 		srv.AddTransport(transport.GET{})
-		http.Handle(cfg.PlaygroundPath, playground.ApolloSandboxHandler(
+		log.GetLogger().Info(fmt.Sprintf("connect to http://localhost:%v%v for GraqhQL", cfg.GraphqlPort, "/playground"))
+		// http.Handle("/playground", playground.AltairHandler(
+		// 	"Playground",
+		// 	cfg.GraphqlPath,
+		// 	nil,
+		// ))
+		http.Handle("/playground", playground.ApolloSandboxHandler(
 			"Playground",
 			cfg.GraphqlPath,
-			playground.WithApolloSandboxHideCookieToggle(true),
-			playground.WithApolloSandboxEndpointIsEditable(true),
-			playground.WithApolloSandboxInitialStatePollForSchemaUpdates(true),
 		))
+
 	}
 
 	handler := cors.AllowAll().Handler(srv)

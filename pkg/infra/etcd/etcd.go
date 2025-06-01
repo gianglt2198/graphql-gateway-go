@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ import (
 
 type (
 	etcdClient[T any] struct {
-		cfg    Config
+		cfg    config.EtcdConfig
 		log    *monitoring.AppLogger
 		client *clientv3.Client
 	}
@@ -29,11 +30,7 @@ type (
 	}
 )
 
-func NewEtcdClient[T any](log *monitoring.AppLogger, cfg Config) EtcdClient[T] {
-	if !cfg.Enabled {
-		return nil
-	}
-
+func NewEtcdClient[T any](log *monitoring.AppLogger, cfg config.EtcdConfig) EtcdClient[T] {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   cfg.Endpoints,
 		DialTimeout: 5 * time.Second,

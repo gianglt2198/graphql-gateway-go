@@ -14,13 +14,14 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
+	"github.com/gianglt2198/graphql-gateway-go/pkg/config"
 	"github.com/gianglt2198/graphql-gateway-go/pkg/infra/monitoring"
 )
 
 type S3Storage struct {
 	log *monitoring.AppLogger
 
-	cfg    S3Config
+	cfg    config.S3Config
 	client *s3.S3
 }
 
@@ -28,7 +29,7 @@ type S3StorageParams struct {
 	fx.In
 
 	Log *monitoring.AppLogger
-	Cfg S3Config
+	Cfg config.S3Config
 }
 
 type S3StorageResult struct {
