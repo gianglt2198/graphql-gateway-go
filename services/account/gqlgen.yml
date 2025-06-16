@@ -1,0 +1,50 @@
+schema:
+  - graphql/schema/*.gql
+  - graphql/schema/**/*.gql
+
+exec:
+  package: generated
+  layout: single-file
+  filename: generated/graph/generated/generated.go
+
+# federation:
+#   package: generated
+#   filename: graph/generated/federation.go
+
+# model:
+#   filename: graph/models/model_gen.go
+#   package: model
+
+resolver:
+  package: resolvers
+  layout: follow-schema
+  dir: generated/graph/resolvers
+  filename_template: "{name}.resolvers.go"
+
+struct_fields_always_pointers: true
+
+autobind:
+  - github.com/99designs/gqlgen/graphql/introspection
+  - github.com/gianglt2198/federation-go/services/account/generated/ent 
+
+models:
+  ID:
+    model:
+      - github.com/gianglt2198/federation-go/package/modules/db/pnnid.ID
+      - github.com/99designs/gqlgen/graphql.String
+  UUID:
+    model:
+      - github.com/99designs/gqlgen/graphql.UUID
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+  Time:
+    model: github.com/99designs/gqlgen/graphql.Time
+  Node:
+    model:
+      - github.com/gianglt2198/federation-go/services/account/generated/ent.Noder

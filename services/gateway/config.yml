@@ -1,0 +1,28 @@
+app:
+  name: "gateway-service"
+  version: "0.1.0"
+  environment: "development"
+  debug: false
+
+server:
+  port: 8080
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 120
+
+metrics:
+  enabled: false
+  port: 9090
+  path: "/metrics"
+  namespace: "federation"
+  subsystem: "gateway"
+
+service:
+  graphql:
+    playground: true 
+    introspection: true
+    path: "/graphql"
+    complexity_limit: 1000
+  gateway:
+    subgraph_timeout: 1000
+    max_concurrent_requests: 100

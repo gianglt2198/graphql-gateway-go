@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "meta": "^2.2.25"
+  }
+}

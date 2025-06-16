@@ -1,0 +1,22 @@
+app:
+  name: "account-service"
+  version: "0.1.0"
+  environment: "development"
+  debug: false
+
+server:
+  port: 8082
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 120
+
+metrics:
+  enabled: false
+  port: 9092
+  path: "/metrics"
+  namespace: "federation"
+  subsystem: "account"
+
+service:
+  graphql:
+    playground: true 

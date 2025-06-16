@@ -1,0 +1,128 @@
+<context>
+# Overview  
+We are building a comprehensive GraphQL Federation architecture in Go that creates a super-graph by gathering all sub-graphs through introspection. The system will consist of a federation gateway, aggregator services, and multiple microservices, all connected through NATS messaging for inter-service communication.
+
+# Core Features  
+- **Federation Gateway**: A Go-based GraphQL federation gateway that serves as the main entry point for clients
+- **Federation Aggregator**: A Go-based service that aggregates and manages sub-graph schemas through introspection
+- **Sub-graph Services**: Multiple Go microservices that expose GraphQL schemas and can be federated
+- **NATS Messaging**: Core messaging system for inter-service communication and event-driven architecture
+- **Schema Introspection**: Automatic discovery and composition of sub-graph schemas into a unified super-graph
+- **Service Registry**: Dynamic service discovery and registration using etcd
+- **Monitoring & Observability**: Comprehensive logging, metrics, and tracing across all services
+
+# User Experience  
+- **Developers**: Single GraphQL endpoint for all queries, seamless federation experience
+- **Service Teams**: Independent development and deployment of sub-graph services
+- **Operations**: Centralized monitoring, logging, and service management
+- **API Consumers**: Unified GraphQL API that abstracts the complexity of microservices
+</context>
+
+<PRD>
+# Technical Architecture  
+
+## System Components
+1. **Gateway Service** (Go)
+   - GraphQL federation gateway using gqlgen
+   - Request routing and query planning
+   - Authentication and authorization middleware
+   - Rate limiting and caching
+   - Connection to NATS for messaging
+
+2. **Aggregator Service** (Go)
+   - Schema introspection and composition
+   - Sub-graph discovery and registration
+   - Schema validation and conflict resolution
+   - Real-time schema updates via NATS
+
+3. **Sub-graph Services** (Go)
+   - Account service (user management, authentication)
+   - Catalog service (product catalog, categories)
+   - Additional domain-specific services
+   - Each exposes GraphQL schema with federation directives
+
+4. **Infrastructure Components**
+   - NATS messaging system for inter-service communication
+   - etcd for service discovery and configuration
+   - Redis for caching and session management
+   - PostgreSQL databases for each service
+   - Monitoring stack (Prometheus, Grafana)
+
+## Data Models
+- **Federation Schema**: Composed super-graph schema
+- **Service Registry**: Service metadata and health status
+- **User Context**: Authentication and authorization data
+- **Domain Models**: Service-specific data models (users, products, etc.)
+
+## APIs and Integrations
+- **GraphQL Federation API**: Main client-facing API
+- **Service Discovery API**: Internal service registration
+- **Health Check API**: Service health monitoring
+- **Admin API**: Schema management and monitoring
+
+## Infrastructure Requirements
+- **Container Orchestration**: Docker and Docker Compose for development
+- **Service Mesh**: NATS for messaging and communication
+- **Database**: PostgreSQL for persistent storage
+- **Cache**: Redis for performance optimization
+- **Monitoring**: Prometheus and Grafana for observability
+
+# Development Roadmap  
+
+## Phase 1: Foundation Infrastructure
+- Set up project structure and build system
+- Implement NATS messaging infrastructure
+- Create service discovery with etcd
+- Set up monitoring and logging framework
+- Implement basic health checks and service registration
+
+## Phase 2: Core Federation Components
+- Develop GraphQL federation gateway
+- Implement schema aggregator service
+- Create schema introspection and composition logic
+- Build query planning and execution engine
+- Implement basic authentication and middleware
+
+## Phase 3: Sub-graph Services
+- Develop Account service with GraphQL schema
+- Implement Catalog service with federation directives
+- Create database schemas and migrations
+- Implement service-to-service communication via NATS
+- Add comprehensive error handling and validation
+
+## Phase 4: Advanced Features
+- Implement advanced query optimization
+- Add comprehensive caching strategies
+- Implement real-time schema updates
+- Add advanced monitoring and alerting
+- Implement performance optimization and load balancing
+
+## Phase 5: Production Readiness
+- Add comprehensive testing (unit, integration, e2e)
+- Implement security hardening
+- Add deployment automation
+- Implement backup and disaster recovery
+- Add comprehensive documentation
+
+# Logical Dependency Chain
+1. **Infrastructure First**: NATS, etcd, monitoring must be established before services
+2. **Service Discovery**: Required before any service can register or communicate
+3. **Gateway Foundation**: Basic gateway before federation logic
+4. **Schema Management**: Aggregator must exist before sub-graphs can be federated
+5. **Sub-graph Services**: Can be developed in parallel once foundation is ready
+6. **Federation Logic**: Schema composition and query planning
+7. **Advanced Features**: Built on top of working federation system
+
+# Risks and Mitigations  
+- **Schema Conflicts**: Implement robust schema validation and conflict resolution
+- **Service Dependencies**: Use circuit breakers and graceful degradation
+- **Performance**: Implement comprehensive caching and query optimization
+- **Complexity**: Start with simple federation and gradually add complexity
+- **Testing**: Implement comprehensive testing strategy from the beginning
+
+# Appendix  
+- **GraphQL Federation Specification**: Apollo Federation 2.0 compatible
+- **Go Libraries**: gqlgen, NATS client, etcd client, Redis client
+- **Database**: PostgreSQL with proper indexing and optimization
+- **Monitoring**: Prometheus metrics, structured logging, distributed tracing
+</PRD>

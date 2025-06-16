@@ -1,0 +1,22 @@
+app:
+  name: "catalog-service"
+  version: "0.1.0"
+  environment: "development"
+  debug: false
+
+server:
+  port: 8083
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 120
+
+metrics:
+  enabled: false
+  port: 9093
+  path: "/metrics"
+  namespace: "federation"
+  subsystem: "catalog"
+
+service:
+  graphql:
+    playground: true
