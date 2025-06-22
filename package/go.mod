@@ -8,6 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.17.75
 	github.com/gofiber/contrib/fiberzap/v2 v2.1.6
 	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/nats-io/nats.go v1.42.0
 	github.com/pingcap/errors v0.11.4

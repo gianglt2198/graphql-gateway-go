@@ -1,8 +1,9 @@
 package graphql
 
 import (
-	"github.com/gianglt2198/federation-go/services/account/graphql/resolvers"
 	"go.uber.org/fx"
+
+	"github.com/gianglt2198/federation-go/services/account/graphql/resolvers"
 )
 
 var Module = fx.Module("graphql",

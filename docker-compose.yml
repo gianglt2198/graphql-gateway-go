@@ -5,43 +5,20 @@ services:
   nats:
     image: nats:2.11-alpine
     ports:
-      - "14222:4222" # Client connections
-      - "18222:8222" # HTTP monitoring
-      - "16222:6222" # Routing port for clustering
+      - "4223:4222" # Client connections
+      - "8223:8222" # HTTP monitoring
+      - "6223:6222" # Routing port for clustering
     command: ["--store_dir=/data"]
     volumes:
       - nats_data:/data
     networks:
       - federation-network
 
-  # etcd Service Discovery
-  etcd:
-    image: quay.io/coreos/etcd:v3.5.10
-    ports:
-      - "12379:2379" # Client port
-      - "12380:2380" # Peer port
-    environment:
-      - ETCD_NAME=etcd-server
-      - ETCD_DATA_DIR=/etcd-data
-      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
-      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
-      - ETCD_INITIAL_CLUSTER=etcd-server=http://etcd:2380
-      - ETCD_INITIAL_CLUSTER_TOKEN=federation-cluster-token
-      - ETCD_INITIAL_CLUSTER_STATE=new
-      - ETCD_AUTO_COMPACTION_RETENTION=1
-    volumes:
-      - etcd_data:/etcd-data
-    networks:
-      - federation-network
-
   # PostgreSQL for Account Service
-  postgres-account:
+  db:
     image: postgres:17.5-alpine3.21
-    container_name: federation-postgres
     ports:
-      - "15432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=username
@@ -63,7 +40,6 @@ services:
 
 volumes:
   nats_data:
-  etcd_data:
   postgres_data:
   redis_data:
 

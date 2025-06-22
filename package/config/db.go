@@ -7,20 +7,20 @@ import (
 
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
-	Driver          string
-	Host            string
-	Port            int
-	Username        string
-	Password        string
-	Database        string
-	SSLMode         string
-	MaxOpenConns    int
-	MaxIdleConns    int
-	ConnMaxLifetime time.Duration
-	MigrationsPath  string
+	Driver          string        `mapstructure:"driver"`
+	Host            string        `mapstructure:"host"`
+	Port            int           `mapstructure:"port"`
+	Username        string        `mapstructure:"user"`
+	Password        string        `mapstructure:"password"`
+	Database        string        `mapstructure:"database"`
+	SSLMode         string        `mapstructure:"ssl_mode"`
+	MaxOpenConns    int           `mapstructure:"max_open_conns"`
+	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+	MigrationsPath  string        `mapstructure:"migrations_path"`
 }
 
 func (c *DatabaseConfig) GetURL() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		c.Host, c.Port, c.Username, c.Password, c.Database, c.SSLMode)
+	return fmt.Sprintf("postgres://%v:%v@%v:%v/%v?search_path=public&sslmode=%v",
+		c.Username, c.Password, c.Host, c.Port, c.Database, c.SSLMode)
 }

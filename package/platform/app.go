@@ -7,6 +7,7 @@ import (
 	"go.uber.org/fx/fxevent"
 
 	"github.com/gianglt2198/federation-go/package/config"
+	"github.com/gianglt2198/federation-go/package/helpers"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	graphqlservice "github.com/gianglt2198/federation-go/package/modules/services/graphql"
 	httpservice "github.com/gianglt2198/federation-go/package/modules/services/http"
@@ -37,12 +38,18 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Supply(cfg.ETCD),
 		fx.Supply(cfg.NATS),
 		fx.Supply(cfg.Service),
+		fx.Supply(cfg.JWT),
+		fx.Supply(cfg.Encrypt),
 		// Provide logger
 		fx.Provide(monitoring.NewLogger),
 		// Provide metrics
 		fx.Provide(monitoring.NewMetrics),
 		// Provide health checker
 		fx.Provide(monitoring.NewHealthChecker),
+		// Provide JWT helper
+		fx.Provide(helpers.NewJWTHelper),
+		// Provide encryptor
+		fx.Provide(helpers.NewAESCipher),
 		// Logger configuration
 		fx.WithLogger(func(logger *monitoring.Logger) fxevent.Logger {
 			return logger.Fx()

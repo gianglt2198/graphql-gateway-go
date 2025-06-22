@@ -4,10 +4,12 @@ import (
 	"context"
 	"log"
 
+	"go.uber.org/fx"
+
 	"github.com/gianglt2198/federation-go/package/platform"
+
 	"github.com/gianglt2198/federation-go/services/account/config"
 	"github.com/gianglt2198/federation-go/services/account/infra"
-	"go.uber.org/fx"
 )
 
 func main() {

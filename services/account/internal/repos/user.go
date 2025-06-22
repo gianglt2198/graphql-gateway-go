@@ -1,10 +1,11 @@
 package repos
 
 import (
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/services/account/generated/ent"
-
 	"go.uber.org/fx"
+
+	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+
+	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 )
 
 type (

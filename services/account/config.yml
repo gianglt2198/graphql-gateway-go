@@ -11,13 +11,20 @@ database:
   user: "username"
   password: "password"
   database: "account"
-  sslmode: "disable"
+  ssl_mode: "disable"
 
 metrics:
   enabled: false
   port: 9093
   path: "/metrics"
   namespace: "federation"
+
+jwt:
+  secret_key: "secret"
+  duration: 3600
+
+encrypt:
+  secret_key: "N1PCdw3M2B1TfJhoaY2mL736p2vCUc47"
 
 # New servers configuration section
 servers:

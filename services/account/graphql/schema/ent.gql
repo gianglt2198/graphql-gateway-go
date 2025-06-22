@@ -19,6 +19,7 @@ input CreateUserInput {
   updatedBy: String
   deletedAt: Time
   deletedBy: String
+  username: String!
   email: String!
   password: String!
   firstName: String!
@@ -258,6 +259,7 @@ input UpdateUserInput {
   clearDeletedAt: Boolean
   deletedBy: String
   clearDeletedBy: Boolean
+  username: String
   email: String
   password: String
   firstName: String
@@ -272,6 +274,7 @@ type User implements Node {
   updatedBy: String
   deletedAt: Time
   deletedBy: String
+  username: String!
   email: String!
   firstName: String!
   lastName: String!
@@ -437,6 +440,22 @@ input UserWhereInput {
   deletedByNotNil: Boolean
   deletedByEqualFold: String
   deletedByContainsFold: String
+  """
+  username field predicates
+  """
+  username: String
+  usernameNEQ: String
+  usernameIn: [String!]
+  usernameNotIn: [String!]
+  usernameGT: String
+  usernameGTE: String
+  usernameLT: String
+  usernameLTE: String
+  usernameContains: String
+  usernameHasPrefix: String
+  usernameHasSuffix: String
+  usernameEqualFold: String
+  usernameContainsFold: String
   """
   email field predicates
   """
