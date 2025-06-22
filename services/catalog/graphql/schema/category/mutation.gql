@@ -1,0 +1,5 @@
+extend type Mutation {
+  createCategory(input: CreateCategoryInput!): Boolean!
+  updateCategory(id: ID!, input: UpdateCategoryInput!): Boolean!
+  deleteCategory(id: ID!): Boolean!
+}

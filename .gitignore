@@ -56,3 +56,5 @@ node_modules/
 .windsurfrules
 
 */**/**/generated
+
+*/**/**/build

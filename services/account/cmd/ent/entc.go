@@ -38,6 +38,8 @@ func main() {
 			gen.FeatureIntercept,
 			gen.FeatureUpsert,
 			gen.FeatureVersionedMigration,
+			gen.FeatureEntQL,
+			gen.FeatureNamedEdges,
 		},
 	}, opts...); err != nil {
 		log.Fatalf("running ent codegen: %v", err)

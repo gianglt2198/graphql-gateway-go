@@ -16,7 +16,7 @@ import (
 
 // Logger wraps zap.Logger with additional functionality
 type Logger struct {
-	logger      *zap.Logger
+	*zap.Logger
 	serviceName string
 }
 
@@ -55,14 +55,14 @@ func NewLogger(config config.AppConfig) *Logger {
 	log.WithOptions()
 	return &Logger{
 		serviceName: config.Name,
-		logger:      log,
+		Logger:      log,
 	}
 }
 
-func (l *Logger) GetLogger() *zap.Logger { return l.logger }
+func (l *Logger) GetLogger() *zap.Logger { return l.Logger }
 
 func (l *Logger) Debug(msg string, fields ...zap.Field) {
-	l.logger.Debug(msg, fields...)
+	l.Logger.Debug(msg, fields...)
 }
 
 func (l *Logger) extractContext(ctx context.Context) []zap.Field {
@@ -96,24 +96,24 @@ func (l *Logger) extractContext(ctx context.Context) []zap.Field {
 }
 
 func (l *Logger) InfoC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.logger.Info(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Logger.Info(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) DebugC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.logger.Debug(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Logger.Debug(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) WarnC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.logger.Warn(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Logger.Warn(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) ErrorC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.logger.Error(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Logger.Error(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) Fx() fxevent.Logger {
 	return &FxLogger{
-		Logger: l.logger,
+		Logger: l.Logger,
 	}
 }
 

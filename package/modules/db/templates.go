@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,7 +47,9 @@ func RepositoryExtention() entc.Option {
 
 				defer f.Close()
 
-				if err := RepositoryTemplate.ExecuteTemplate(f, "repository", node); err != nil {
+				if err := RepositoryTemplate.Funcs(template.FuncMap{
+					"lower": strings.ToLower,
+				}).ExecuteTemplate(f, "repository", node); err != nil {
 					return err
 				}
 			}

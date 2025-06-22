@@ -4,7 +4,6 @@
 dev:
 	@air
 
-
 generate:
 	@go generate ./...
 

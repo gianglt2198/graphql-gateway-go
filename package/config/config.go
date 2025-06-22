@@ -10,7 +10,7 @@ import (
 // Config holds the configuration for all services
 type Config[T any] struct {
 	App      AppConfig      `mapstructure:"app"`
-	Server   ServerConfig   `mapstructure:"server"`
+	Servers  ServerConfig   `mapstructure:"servers"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	NATS     NATSConfig     `mapstructure:"nats"`
@@ -29,10 +29,21 @@ type AppConfig struct {
 
 // ServerConfig holds server-specific configuration
 type ServerConfig struct {
-	Port         int `mapstructure:"port"`
-	ReadTimeout  int `mapstructure:"read_timeout"`
-	WriteTimeout int `mapstructure:"write_timeout"`
-	IdleTimeout  int `mapstructure:"idle_timeout"`
+	HTTP    HTTPConfig    `mapstructure:"http"`
+	GraphQL GraphQLConfig `mapstructure:"graphql"`
+}
+
+type HTTPConfig struct {
+	Enabled      bool `mapstructure:"enabled"`
+	Port         int  `mapstructure:"port"`
+	ReadTimeout  int  `mapstructure:"read_timeout"`
+	WriteTimeout int  `mapstructure:"write_timeout"`
+	IdleTimeout  int  `mapstructure:"idle_timeout"`
+}
+
+type GraphQLConfig struct {
+	Enabled    bool `mapstructure:"enabled"`
+	Playground bool `mapstructure:"playground"`
 }
 
 // Load loads configuration from file and environment variables

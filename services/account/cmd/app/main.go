@@ -1,15 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/gianglt2198/federation-go/package/platform"
 	"github.com/gianglt2198/federation-go/services/account/config"
 	"github.com/gianglt2198/federation-go/services/account/infra"
+	"go.uber.org/fx"
 )
 
 func main() {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
@@ -20,7 +21,9 @@ func main() {
 		infra.Module,
 	)
 
-	if err := app.Run(); err != nil {
-		log.Fatalf("Failed to run account service: %v", err)
-	}
-} 
+	app.Run(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return nil
+		},
+	})
+}

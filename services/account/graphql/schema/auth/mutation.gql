@@ -1,0 +1,4 @@
+extend type Mutation {
+  accountAuthLogin(input: LoginInput!): String!
+  accountAuthLogout: Boolean!
+}

@@ -26,7 +26,7 @@ BUILD_FLAGS := -v $(LDFLAGS)
 DOCKER_REGISTRY := localhost:5000
 DOCKER_TAG := $(VERSION)
 
-.PHONY: help setup clean build build-all test test-coverage lint fmt vet mod-tidy
+.PHONY: help setup clean build build-all test test-coverage lint fmt vet tidy
 .PHONY: run-gateway run-aggregator run-account run-catalog run-all stop-all
 .PHONY: docker-build docker-push docker-run infra-up infra-down
 .PHONY: proto-gen graphql-gen deps-update security-scan
@@ -56,7 +56,7 @@ clean: ## Clean generated folder in each service
 	@echo "$(BLUE)Cleaning generated folder...$(NC)"
 	@for service in $(SERVICES); do \
 		echo "$(YELLOW)Cleaning $$service generated folder...$(NC)"; \
-		cd services/$$service && rm -rf generated && cd ../..; \
+		cd services/$$service && $(MAKE) clean && cd ../..; \
 	done
 	@echo "$(GREEN)Generated folder cleaned!$(NC)"
 
@@ -124,7 +124,7 @@ vet: ## Run go vet
 	@echo "$(GREEN)Vet completed!$(NC)"
 
 # Dependency management
-mod-tidy: ## Tidy go modules for all services
+tidy: ## Tidy go modules for all services
 	@echo "$(BLUE)Tidying go modules...$(NC)"
 	@cd package && go mod tidy
 	@for service in $(SERVICES); do \
@@ -187,7 +187,7 @@ graphql-gen: ## Generate GraphQL code
 	@for service in $(SERVICES); do \
 		if [ -f "services/$$service/gqlgen.yml" ]; then \
 			echo "$(YELLOW)Generating GraphQL code for $$service...$(NC)"; \
-			cd services/$$service &&  go generate ./... && cd ../..; \
+			cd services/$$service &&  $(MAKE) generate && cd ../..; \
 		fi; \
 	done
 	@echo "$(GREEN)GraphQL code generated!$(NC)"

@@ -1,18 +1,18 @@
 schema:
-  - graph/schema/*.gql
-  - graph/schema/**/*.gql
+  - graphql/schema/*.gql
+  - graphql/schema/**/*.gql
 
 exec:
   package: generated
   layout: single-file
-  filename: generated/graph/generated.go
+  filename: generated/graph/generated/generated.go
 
 # federation:
 #   package: generated
 #   filename: graph/generated/federation.go
 
 # model:
-#   filename: graph/models/model_gen.go
+#   filename: generated/graph/model/model_gen.go
 #   package: model
 
 resolver:
@@ -25,13 +25,12 @@ struct_fields_always_pointers: true
 
 autobind:
   - github.com/99designs/gqlgen/graphql/introspection
-  - github.com/gianglt2198/federation-go/catalog/ent
-  - github.com/gianglt2198/federation-go/catalog/ent/product
+  - github.com/gianglt2198/federation-go/services/catalog/generated/ent 
 
 models:
   ID:
     model:
-      - github.com/gianglt2198/federation-go/pkg/modules/db/pnnid.ID
+      - github.com/gianglt2198/federation-go/package/modules/db/pnnid.ID
       - github.com/99designs/gqlgen/graphql.String
   UUID:
     model:
@@ -48,4 +47,4 @@ models:
     model: github.com/99designs/gqlgen/graphql.Time
   Node:
     model:
-      - github.com/gianglt2198/federation-go/catalog/ent.Noder
+      - github.com/gianglt2198/federation-go/services/catalog/generated/ent.Noder

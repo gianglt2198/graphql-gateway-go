@@ -1,6 +1,9 @@
 package config
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
@@ -15,4 +18,9 @@ type DatabaseConfig struct {
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
 	MigrationsPath  string
+}
+
+func (c *DatabaseConfig) GetURL() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		c.Host, c.Port, c.Username, c.Password, c.Database, c.SSLMode)
 }

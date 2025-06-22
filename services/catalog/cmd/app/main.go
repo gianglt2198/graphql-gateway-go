@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/gianglt2198/federation-go/package/platform"
+	"go.uber.org/fx"
+
 	"github.com/gianglt2198/federation-go/services/catalog/config"
 	"github.com/gianglt2198/federation-go/services/catalog/infra"
 )
@@ -17,9 +20,11 @@ func main() {
 	app := platform.NewApp(
 		cfg,
 		infra.Module,
-	)	
+	)
 
-	if err := app.Run(); err != nil {
-		log.Fatalf("Failed to run catalog service: %v", err)
-	}
-} 
+	app.Run(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return nil
+		},
+	})
+}

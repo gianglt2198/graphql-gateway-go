@@ -11,9 +11,9 @@ exec:
 #   package: generated
 #   filename: graph/generated/federation.go
 
-# model:
-#   filename: graph/models/model_gen.go
-#   package: model
+model:
+  filename: generated/graph/model/model_gen.go
+  package: model
 
 resolver:
   package: resolvers

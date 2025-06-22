@@ -1,22 +1,32 @@
 app:
-  name: "account-service"
+  name: "account"
   version: "0.1.0"
   environment: "development"
   debug: false
 
-server:
-  port: 8082
-  read_timeout: 30
-  write_timeout: 30
-  idle_timeout: 120
+database:
+  driver: "postgres"
+  host: "localhost"
+  port: 5433
+  user: "username"
+  password: "password"
+  database: "account"
+  sslmode: "disable"
 
 metrics:
   enabled: false
-  port: 9092
+  port: 9093
   path: "/metrics"
   namespace: "federation"
-  subsystem: "account"
 
-service:
+# New servers configuration section
+servers:
+  http:
+    enabled: true
+    port: 8083
+    read_timeout: 30
+    write_timeout: 30
+    idle_timeout: 120
   graphql:
-    playground: true 
+    enabled: true
+    playground: true

@@ -1,0 +1,9 @@
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input ConfirmInput {
+  email: String!
+  code: String!
+}
