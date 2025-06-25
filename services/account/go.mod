@@ -5,6 +5,7 @@ go 1.24.1
 replace github.com/gianglt2198/federation-go/package => ../../package
 
 require (
+	ariga.io/atlas v0.31.1-0.20250212144724-069be8033e83
 	entgo.io/contrib v0.6.0
 	entgo.io/ent v0.14.4
 	github.com/99designs/gqlgen v0.17.75
@@ -20,7 +21,6 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.31.1-0.20250212144724-069be8033e83 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect

@@ -80,3 +80,7 @@ func ApplyRequestIDWithContext(ctx context.Context) (context.Context, string) {
 func ApplyValueByKeyWithCtx[T any](ctx context.Context, k common.KeyType, v *T) context.Context {
 	return context.WithValue(ctx, k, v)
 }
+
+func ApplyUserIDWithContext(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, common.KEY_AUTH_USER_ID, userID)
+}

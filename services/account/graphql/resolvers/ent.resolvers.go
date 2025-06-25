@@ -6,12 +6,12 @@ package resolvers
 
 import (
 	"context"
-
-	"entgo.io/contrib/entgql"
+	"fmt"
 
 	"github.com/gianglt2198/federation-go/package/modules/db/pnnid"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
+	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 )
 
 // Node is the resolver for the node field.
@@ -24,12 +24,7 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pnnid.ID) ([]ent.Noder,
 	return r.db.Noders(ctx, ids)
 }
 
-// Sessions is the resolver for the sessions field.
-func (r *queryResolver) Sessions(ctx context.Context, after *entgql.Cursor[pnnid.ID], first *int, before *entgql.Cursor[pnnid.ID], last *int, where *ent.SessionWhereInput) (*ent.SessionConnection, error) {
-	return r.db.Session.Query().Paginate(ctx, after, first, before, last, ent.WithSessionFilter(where.Filter))
-}
-
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pnnid.ID], first *int, before *entgql.Cursor[pnnid.ID], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	return r.db.User.Query().Paginate(ctx, after, first, before, last, ent.WithUserFilter(where.Filter))
+// FindAuthVerifyEntityByID implements generated.EntityResolver.
+func (e *entityResolver) FindAuthVerifyEntityByID(ctx context.Context, id pnnid.ID) (*model.AuthVerifyEntity, error) {
+	panic(fmt.Errorf("not implemented: FindAuthVerifyEntityByID - findAuthVerifyEntityByID"))
 }

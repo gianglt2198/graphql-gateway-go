@@ -57,7 +57,7 @@ func New{{ $name }}Repository(log *monitoring.Logger, db *Client) {{ $name }}Rep
 
 // Client returns the database client, with transaction support
 func ({{ $receiver }} *{{ $nameLower }}Repository) Client(ctx context.Context) *Client {
-	return FromContext(ctx)
+	return {{ $receiver }}.db
 }
 
 // Query returns a new query builder for {{ $name }}

@@ -1,3 +1,9 @@
-type LoginResponse {
+type LoginEntity {
   token: String!
+}
+
+type AuthVerifyEntity @key(fields: "id") {
+  id: ID!
+  session: String!
+  sessionExpired: Time!
 }

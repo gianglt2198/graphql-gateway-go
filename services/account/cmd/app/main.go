@@ -10,6 +10,8 @@ import (
 
 	"github.com/gianglt2198/federation-go/services/account/config"
 	"github.com/gianglt2198/federation-go/services/account/infra"
+
+	_ "github.com/gianglt2198/federation-go/services/account/generated/ent/runtime"
 )
 
 func main() {

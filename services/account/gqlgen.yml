@@ -7,9 +7,9 @@ exec:
   layout: single-file
   filename: generated/graph/generated/generated.go
 
-# federation:
-#   package: generated
-#   filename: graph/generated/federation.go
+federation:
+  package: generated
+  filename: generated/graph/generated/federation.go
 
 model:
   filename: generated/graph/model/model_gen.go

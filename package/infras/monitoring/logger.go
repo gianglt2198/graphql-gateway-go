@@ -49,7 +49,7 @@ func NewLogger(config config.AppConfig) *Logger {
 		coreArr = append(coreArr, consoleCore)
 	}
 
-	log := zap.New(zapcore.NewTee(coreArr...), zap.AddCaller()) // zap.AddCaller() is used to display the file name and line number and can be omitted.
+	log := zap.New(zapcore.NewTee(coreArr...), zap.AddCaller(), zap.AddCallerSkip(1)) // zap.AddCaller() is used to display the file name and line number and can be omitted.
 	// defer log.Sync()
 
 	log.WithOptions()
@@ -96,19 +96,19 @@ func (l *Logger) extractContext(ctx context.Context) []zap.Field {
 }
 
 func (l *Logger) InfoC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Logger.Info(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Info(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) DebugC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Logger.Debug(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Debug(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) WarnC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Logger.Warn(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Warn(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) ErrorC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Logger.Error(msg, append(fields, l.extractContext(ctx)...)...)
+	l.Error(msg, append(fields, l.extractContext(ctx)...)...)
 }
 
 func (l *Logger) Fx() fxevent.Logger {

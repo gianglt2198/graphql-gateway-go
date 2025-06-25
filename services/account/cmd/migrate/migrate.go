@@ -32,7 +32,6 @@ func main() {
 	rootCmd.AddCommand(
 		migrateGenCmd(),
 		migrateUpCmd(),
-		migrateDownCmd(),
 		migrateNewCmd(),
 		migrateHashCmd(),
 		migrateStatusCmd(),
@@ -69,25 +68,6 @@ func migrateUpCmd() *cobra.Command {
 			return applyMigrations()
 		},
 	}
-	return cmd
-}
-
-// migrateDownCmd rolls back migrations
-func migrateDownCmd() *cobra.Command {
-	var version string
-	cmd := &cobra.Command{
-		Use:   "migrate-down",
-		Short: "Roll back migrations to a specific version",
-		Long:  "Roll back database migrations to a specific version using Atlas CLI",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if version == "" {
-				return fmt.Errorf("version is required for rollback")
-			}
-			return rollbackMigrations(version)
-		},
-	}
-	cmd.Flags().StringVarP(&version, "version", "v", "", "Version to roll back to (required)")
-	_ = cmd.MarkFlagRequired("version")
 	return cmd
 }
 
@@ -195,28 +175,6 @@ func applyMigrations() error {
 	return runAtlasCommand("apply",
 		"--dir", "file://"+migrationDir,
 		"--url", cfg.Database.GetURL(),
-	)
-}
-
-// rollbackMigrations rolls back to a specific version
-func rollbackMigrations(version string) error {
-	cfg, err := config.Load()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	if err := ensureMigrationDir(); err != nil {
-		return err
-	}
-
-	// Use dev database URL for rollback safety
-	devURL := getDevDatabaseURL(cfg)
-
-	return runAtlasCommand("down",
-		"--to-version", version,
-		"--url", cfg.Database.GetURL(),
-		"--dir", "file://"+migrationDir,
-		"--dev-url", devURL,
 	)
 }
 

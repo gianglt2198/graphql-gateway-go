@@ -12,6 +12,7 @@ import (
 	"github.com/gianglt2198/federation-go/package/helpers"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/db/pnnid"
+	"github.com/gianglt2198/federation-go/package/utils"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent/user"
@@ -68,6 +69,8 @@ func NewAuthService(params AuthServiceParams) AuthServiceResult {
 
 func (s *authService) Register(ctx context.Context, input model.RegisterInput) (*ent.User, error) {
 	s.log.InfoC(ctx, "Starting user registration", zap.String("username", input.Username))
+
+	ctx = utils.ApplyUserIDWithContext(ctx, "system")
 
 	// Check if user already exists
 	existingUser, err := s.userRepository.Query(ctx).

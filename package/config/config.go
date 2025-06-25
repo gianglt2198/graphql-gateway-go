@@ -33,16 +33,16 @@ type AppConfig struct {
 func Load[T any](configPath string) (*Config[T], error) {
 	v := viper.New()
 
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.AddConfigPath(".")
+	v.AddConfigPath("./config")
+	v.AddConfigPath("../config")
+	v.AddConfigPath("../../config")
+
 	// Set config file path
 	if configPath != "" {
-		v.SetConfigFile(configPath)
-	} else {
-		v.SetConfigName("config")
-		v.SetConfigType("yaml")
-		v.AddConfigPath(".")
-		v.AddConfigPath("./config")
-		v.AddConfigPath("../config")
-		v.AddConfigPath("../../config")
+		v.AddConfigPath(configPath)
 	}
 
 	// Enable environment variable support

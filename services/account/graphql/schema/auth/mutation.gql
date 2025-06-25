@@ -1,5 +1,6 @@
 extend type Mutation {
   accountAuthRegister(input: RegisterInput!): Boolean!
-  accountAuthLogin(input: LoginInput!): LoginResponse
+  accountAuthLogin(input: LoginInput!): LoginEntity
   accountAuthLogout: Boolean!
+  accountAuthVerify: AuthVerifyEntity!
 }
