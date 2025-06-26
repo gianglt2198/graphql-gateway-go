@@ -207,6 +207,8 @@ input SessionWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  idEqualFold: ID
+  idContainsFold: ID
   """
   user_id field predicates
   """
@@ -353,6 +355,8 @@ input UserWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  idEqualFold: ID
+  idContainsFold: ID
   """
   created_at field predicates
   """

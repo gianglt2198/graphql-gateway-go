@@ -2,17 +2,15 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entgql"
-	"github.com/gianglt2198/federation-go/package/modules/db/pnnid"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 )
 
 // Sessions is the resolver for the sessions field.
-func (r *queryResolver) Sessions(ctx context.Context, after *entgql.Cursor[pnnid.ID], first *int, before *entgql.Cursor[pnnid.ID], last *int, where *ent.SessionWhereInput) (*ent.SessionConnection, error) {
+func (r *queryResolver) Sessions(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.SessionWhereInput) (*ent.SessionConnection, error) {
 	return r.db.Session.Query().Paginate(ctx, after, first, before, last, ent.WithSessionFilter(where.Filter))
 }
 
@@ -37,13 +35,13 @@ func (r *mutationResolver) AccountAuthLogin(ctx context.Context, input model.Log
 
 // AccountAuthLogout is the resolver for the accountAuthLogout field.
 func (r *mutationResolver) AccountAuthLogout(ctx context.Context) (bool, error) {
-	err := r.authService.Logout(ctx, pnnid.ID(ctx.Value("session_id").(string)))
+	err := r.authService.Logout(ctx)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *mutationResolver) AccountAuthVerify(ctx context.Context) (*model.AuthVerifyEntity, error) {
-	panic(fmt.Errorf("not implemented: AccountAuthVerify - accountAuthVerify"))
+func (r *mutationResolver) AccountAuthVerify(ctx context.Context, input model.AuthVerifyInput) (*model.AuthVerifyEntity, error) {
+	return r.authService.AuthVerify(ctx, input)
 }

@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
+	"github.com/gianglt2198/federation-go/package/utils"
 )
 
 // MixinWithPrefix creates a Mixin that encodes the provided prefix.
@@ -22,8 +23,7 @@ type Mixin struct {
 func (m Mixin) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").
-			GoType(ID("")).
-			DefaultFunc(func() ID { return MustNew(m.prefix) }),
+			DefaultFunc(func() string { return utils.NewID(21, m.prefix) }),
 	}
 }
 

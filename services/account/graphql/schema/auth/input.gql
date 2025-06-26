@@ -13,3 +13,7 @@ input RegisterInput {
   address: String
   avatar: String
 }
+
+input AuthVerifyInput {
+  token: String!
+}

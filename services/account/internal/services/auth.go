@@ -11,10 +11,11 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/helpers"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/package/modules/db/pnnid"
 	"github.com/gianglt2198/federation-go/package/utils"
+	"github.com/samber/lo"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
+	"github.com/gianglt2198/federation-go/services/account/generated/ent/session"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent/user"
 	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 	"github.com/gianglt2198/federation-go/services/account/internal/repos"
@@ -24,16 +25,19 @@ type (
 	authService struct {
 		log *monitoring.Logger
 
+		jwtHelper helpers.JwtHelper
+		encryptor helpers.Encryptor
+
 		userRepository    repos.UserRepository
 		sessionRepository repos.SessionRepository
-		jwtHelper         helpers.JwtHelper
-		encryptor         helpers.Encryptor
 	}
 
 	AuthService interface {
+		FindAuthByID(ctx context.Context, id string) (*model.AuthVerifyEntity, error)
 		Register(ctx context.Context, input model.RegisterInput) (*ent.User, error)
 		Login(ctx context.Context, input model.LoginInput) (string, error)
-		Logout(ctx context.Context, sessionID pnnid.ID) error
+		Logout(ctx context.Context) error
+		AuthVerify(ctx context.Context, input model.AuthVerifyInput) (*model.AuthVerifyEntity, error)
 	}
 )
 
@@ -59,10 +63,10 @@ func NewAuthService(params AuthServiceParams) AuthServiceResult {
 	return AuthServiceResult{
 		AuthService: &authService{
 			log:               params.Log,
-			userRepository:    params.UserRepository,
-			sessionRepository: params.SessionRepository,
 			jwtHelper:         params.JWTHelper,
 			encryptor:         params.Encryptor,
+			userRepository:    params.UserRepository,
+			sessionRepository: params.SessionRepository,
 		},
 	}
 }
@@ -132,8 +136,28 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 		return "", errors.New("invalid username or password")
 	}
 
+	_, err = s.sessionRepository.DeleteWithPredicates(ctx, session.UserIDEQ(string(foundUser.ID)))
+	if err != nil {
+		s.log.ErrorC(ctx, "Failed to delete sessions", zap.Error(err))
+		return "", errors.New("failed to delete sessions")
+	}
+
+	// Create session record
+	sessionInput := ent.CreateSessionInput{
+		UserID:     string(foundUser.ID),
+		LastUsedAt: time.Now(),
+	}
+
+	sess, err := s.sessionRepository.CreateOne(ctx, sessionInput)
+	if err != nil {
+		s.log.ErrorC(ctx, "Failed to create session", zap.Error(err))
+		return "", errors.New("failed to create session")
+	}
+
 	// Generate JWT token
 	claims := map[string]interface{}{
+		"iat":      time.Now().Unix(),
+		"sub":      sess.ID,
 		"user_id":  string(foundUser.ID),
 		"username": foundUser.Username,
 		"email":    foundUser.Email,
@@ -145,23 +169,6 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 		return "", errors.New("failed to generate authentication token")
 	}
 
-	// Create session record
-	sessionInput := ent.CreateSessionInput{
-		UserID:     string(foundUser.ID),
-		LastUsedAt: time.Now(),
-	}
-
-	session, err := s.sessionRepository.CreateOne(ctx, sessionInput)
-	if err != nil {
-		s.log.ErrorC(ctx, "Failed to create session", zap.Error(err))
-		// Don't fail login if session creation fails, just log it
-	} else {
-		s.log.InfoC(ctx, "Session created",
-			zap.String("session_id", string(session.ID)),
-			zap.String("user_id", string(foundUser.ID)),
-		)
-	}
-
 	s.log.InfoC(ctx, "User logged in successfully",
 		zap.String("user_id", string(foundUser.ID)),
 		zap.String("username", foundUser.Username),
@@ -170,16 +177,15 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 	return token, nil
 }
 
-func (s *authService) Logout(ctx context.Context, sessionID pnnid.ID) error {
-	s.log.InfoC(ctx, "Starting user logout", zap.String("session_id", string(sessionID)))
+func (s *authService) Logout(ctx context.Context) error {
+	userID := ctx.Value("user_id").(string)
 
-	err := s.sessionRepository.DeleteOne(ctx, sessionID, nil)
+	_, err := s.sessionRepository.DeleteWithPredicates(ctx, session.UserIDEQ(userID))
 	if err != nil {
 		s.log.ErrorC(ctx, "Failed to delete session", zap.Error(err))
 		return errors.New("failed to logout")
 	}
 
-	s.log.InfoC(ctx, "User logged out successfully", zap.String("session_id", string(sessionID)))
 	return nil
 }
 
@@ -189,4 +195,61 @@ func getStringOrDefault(ptr *string, defaultValue string) string {
 		return *ptr
 	}
 	return defaultValue
+}
+
+func (s *authService) FindAuthByID(ctx context.Context, id string) (*model.AuthVerifyEntity, error) {
+	session, err := s.sessionRepository.Query(ctx).
+		Where(session.IDEQ(string(id))).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionExpired := session.LastUsedAt.Add(24 * time.Hour)
+
+	return &model.AuthVerifyEntity{
+		ID:             session.ID,
+		UserID:         session.UserID,
+		SessionExpired: sessionExpired,
+		LastUsedAt:     session.LastUsedAt,
+	}, nil
+}
+
+func (s *authService) AuthVerify(ctx context.Context, input model.AuthVerifyInput) (*model.AuthVerifyEntity, error) {
+	claims, err := s.jwtHelper.ValidateToken(input.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionID, ok := claims["sub"].(string)
+	if !ok {
+		return nil, errors.New("session_id not found")
+	}
+
+	session, err := s.sessionRepository.Query(ctx).
+		Where(session.IDEQ(sessionID)).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if session.LastUsedAt.Add(24 * time.Hour).Before(time.Now()) {
+		return nil, errors.New("session expired")
+	}
+
+	lastUsedAt := time.Now()
+
+	session, err = s.sessionRepository.UpdateOne(ctx, sessionID, ent.UpdateSessionInput{
+		LastUsedAt: lo.ToPtr(lastUsedAt),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.AuthVerifyEntity{
+		ID:             session.ID,
+		UserID:         session.UserID,
+		SessionExpired: lastUsedAt.Add(24 * time.Hour),
+		LastUsedAt:     lastUsedAt,
+	}, nil
 }
