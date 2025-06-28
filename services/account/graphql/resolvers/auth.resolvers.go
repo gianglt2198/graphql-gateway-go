@@ -3,16 +3,8 @@ package resolvers
 import (
 	"context"
 
-	"entgo.io/contrib/entgql"
-
-	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 )
-
-// Sessions is the resolver for the sessions field.
-func (r *queryResolver) Sessions(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.SessionWhereInput) (*ent.SessionConnection, error) {
-	return r.db.Session.Query().Paginate(ctx, after, first, before, last, ent.WithSessionFilter(where.Filter))
-}
 
 // AccountAuthRegister is the resolver for the accountAuthRegister field.
 func (r *mutationResolver) AccountAuthRegister(ctx context.Context, input model.RegisterInput) (bool, error) {

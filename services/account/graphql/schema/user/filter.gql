@@ -1,0 +1,5 @@
+input UserFilter {
+  ids: [ID!]
+  email: String
+  username: String
+}

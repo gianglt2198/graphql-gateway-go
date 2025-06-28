@@ -1,0 +1,18 @@
+input CreateProductInput {
+  name: String!
+  description: String
+  price: Float
+  stock: Int
+  categoryIDs: [ID!]
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  clearDescription: Boolean
+  price: Float
+  stock: Int
+  addCategoryIDs: [ID!]
+  removeCategoryIDs: [ID!]
+  clearCategories: Boolean
+}

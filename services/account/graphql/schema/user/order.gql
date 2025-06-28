@@ -1,0 +1,11 @@
+input UserOrder {
+  direction: OrderDirection! = ASC
+  field: UserOrderField!
+}
+
+enum UserOrderField {
+  createdAt
+  createdBy
+  updatedAt
+  updatedBy
+}

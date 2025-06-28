@@ -15,8 +15,8 @@ import (
 
 	pkgConfig "github.com/gianglt2198/federation-go/package/config"
 
-	"github.com/gianglt2198/federation-go/services/account/config"
-	"github.com/gianglt2198/federation-go/services/account/generated/ent/migrate"
+	"github.com/gianglt2198/federation-go/services/catalog/config"
+	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/migrate"
 )
 
 var (
@@ -242,7 +242,7 @@ func ensureMigrationDir() error {
 }
 
 // getDevDatabaseURL constructs a development database URL for rollback operations
-func getDevDatabaseURL(cfg *pkgConfig.Config[config.AccountConfig]) string {
+func getDevDatabaseURL(cfg *pkgConfig.Config[config.CatalogConfig]) string {
 	// Check for environment variable first
 	if devURL := os.Getenv("DEV_DATABASE_URL"); devURL != "" {
 		return devURL

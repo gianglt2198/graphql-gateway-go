@@ -1,0 +1,11 @@
+input ProductOrder {
+  direction: OrderDirection! = ASC
+  field: ProductOrderField!
+}
+
+enum ProductOrderField {
+  createdAt
+  createdBy
+  updatedAt
+  updatedBy
+}

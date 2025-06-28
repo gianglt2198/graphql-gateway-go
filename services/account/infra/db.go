@@ -1,12 +1,13 @@
 package infra
 
 import (
+	"entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/modules/db"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 )
@@ -16,9 +17,6 @@ var dbModule = fx.Module("db",
 )
 
 func NewDB(cfg config.DatabaseConfig, logger *monitoring.Logger) *ent.Client {
-	db, err := ent.Open(cfg.Driver, cfg.GetURL())
-	if err != nil {
-		logger.GetLogger().Fatal("failed opening connection", zap.String("driver", cfg.Driver), zap.Error(err))
-	}
-	return db
+	rawdb := db.NewDB(cfg, logger)
+	return ent.NewClient(ent.Driver(sql.OpenDB(cfg.Driver, rawdb)), ent.Debug())
 }

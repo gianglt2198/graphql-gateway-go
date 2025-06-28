@@ -1,0 +1,34 @@
+type CategoryConnection {
+  edges: [CategoryEdge]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Category implements Node {
+  id: ID!
+  createdAt: Time!
+  createdBy: String!
+  updatedAt: Time!
+  updatedBy: String
+  name: String!
+  description: String
+  products(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: [ProductOrder!]
+    filter: ProductFilter
+  ): ProductConnection!
+}
+
+type CategoryEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: Category
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}

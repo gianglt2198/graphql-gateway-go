@@ -1,0 +1,14 @@
+input CreateCategoryInput {
+  name: String!
+  description: String
+  productIDs: [ID!]
+}
+
+input UpdateCategoryInput {
+  name: String
+  description: String
+  clearDescription: Boolean
+  addProductIDs: [ID!]
+  removeProductIDs: [ID!]
+  clearProducts: Boolean
+}

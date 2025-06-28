@@ -14,6 +14,7 @@ import (
 	"github.com/gianglt2198/federation-go/package/utils"
 	"github.com/samber/lo"
 
+	"github.com/gianglt2198/federation-go/services/account/config"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent/session"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent/user"
@@ -24,6 +25,8 @@ import (
 type (
 	authService struct {
 		log *monitoring.Logger
+
+		config config.AccountConfig
 
 		jwtHelper helpers.JwtHelper
 		encryptor helpers.Encryptor
@@ -46,6 +49,8 @@ type AuthServiceParams struct {
 
 	Log *monitoring.Logger
 
+	Config config.AccountConfig
+
 	JWTHelper helpers.JwtHelper
 	Encryptor helpers.Encryptor
 
@@ -63,6 +68,7 @@ func NewAuthService(params AuthServiceParams) AuthServiceResult {
 	return AuthServiceResult{
 		AuthService: &authService{
 			log:               params.Log,
+			config:            params.Config,
 			jwtHelper:         params.JWTHelper,
 			encryptor:         params.Encryptor,
 			userRepository:    params.UserRepository,
@@ -97,9 +103,9 @@ func (s *authService) Register(ctx context.Context, input model.RegisterInput) (
 		Username:  input.Username,
 		Email:     input.Email,
 		Password:  string(hashedPassword),
-		FirstName: getStringOrDefault(input.FirstName, ""),
-		LastName:  getStringOrDefault(input.LastName, ""),
-		Phone:     getStringOrDefault(input.Phone, ""),
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Phone:     input.Phone,
 	}
 
 	// Create the user
@@ -136,7 +142,7 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 		return "", errors.New("invalid username or password")
 	}
 
-	_, err = s.sessionRepository.DeleteWithPredicates(ctx, session.UserIDEQ(string(foundUser.ID)))
+	_, err = s.sessionRepository.DeleteWithPredicates(ctx, session.HasUserWith(user.IDEQ(string(foundUser.ID))))
 	if err != nil {
 		s.log.ErrorC(ctx, "Failed to delete sessions", zap.Error(err))
 		return "", errors.New("failed to delete sessions")
@@ -180,7 +186,7 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 func (s *authService) Logout(ctx context.Context) error {
 	userID := ctx.Value("user_id").(string)
 
-	_, err := s.sessionRepository.DeleteWithPredicates(ctx, session.UserIDEQ(userID))
+	_, err := s.sessionRepository.DeleteWithPredicates(ctx, session.HasUserWith(user.IDEQ(userID)))
 	if err != nil {
 		s.log.ErrorC(ctx, "Failed to delete session", zap.Error(err))
 		return errors.New("failed to logout")
@@ -189,29 +195,22 @@ func (s *authService) Logout(ctx context.Context) error {
 	return nil
 }
 
-// Helper function to get string value or default
-func getStringOrDefault(ptr *string, defaultValue string) string {
-	if ptr != nil {
-		return *ptr
-	}
-	return defaultValue
-}
-
 func (s *authService) FindAuthByID(ctx context.Context, id string) (*model.AuthVerifyEntity, error) {
 	session, err := s.sessionRepository.Query(ctx).
 		Where(session.IDEQ(string(id))).
+		WithUser().
 		First(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	sessionExpired := session.LastUsedAt.Add(24 * time.Hour)
+	sessionExpired := session.LastUsedAt.Add(time.Duration(s.config.ExpiredDuration) * time.Hour)
 
 	return &model.AuthVerifyEntity{
-		ID:             session.ID,
-		UserID:         session.UserID,
-		SessionExpired: sessionExpired,
-		LastUsedAt:     session.LastUsedAt,
+		ID:               session.ID,
+		UserID:           session.Edges.User.ID,
+		SessionExpiredAt: sessionExpired,
+		LastUsedAt:       session.LastUsedAt,
 	}, nil
 }
 
@@ -228,18 +227,19 @@ func (s *authService) AuthVerify(ctx context.Context, input model.AuthVerifyInpu
 
 	session, err := s.sessionRepository.Query(ctx).
 		Where(session.IDEQ(sessionID)).
+		WithUser().
 		First(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if session.LastUsedAt.Add(24 * time.Hour).Before(time.Now()) {
+	if session.LastUsedAt.Add(time.Duration(s.config.ExpiredDuration) * time.Hour).Before(time.Now()) {
 		return nil, errors.New("session expired")
 	}
 
 	lastUsedAt := time.Now()
 
-	session, err = s.sessionRepository.UpdateOne(ctx, sessionID, ent.UpdateSessionInput{
+	_, err = s.sessionRepository.UpdateOne(ctx, sessionID, ent.UpdateSessionInput{
 		LastUsedAt: lo.ToPtr(lastUsedAt),
 	})
 	if err != nil {
@@ -247,9 +247,9 @@ func (s *authService) AuthVerify(ctx context.Context, input model.AuthVerifyInpu
 	}
 
 	return &model.AuthVerifyEntity{
-		ID:             session.ID,
-		UserID:         session.UserID,
-		SessionExpired: lastUsedAt.Add(24 * time.Hour),
-		LastUsedAt:     lastUsedAt,
+		ID:               session.ID,
+		UserID:           session.Edges.User.ID,
+		SessionExpiredAt: lastUsedAt.Add(time.Duration(s.config.ExpiredDuration) * time.Hour),
+		LastUsedAt:       lastUsedAt,
 	}, nil
 }

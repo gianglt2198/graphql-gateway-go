@@ -37,3 +37,6 @@ servers:
   graphql:
     enabled: true
     playground: true
+
+service:
+  expired_duration: 168

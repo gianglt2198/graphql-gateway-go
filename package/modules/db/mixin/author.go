@@ -43,6 +43,8 @@ func (AuthorMixin) Fields() []ent.Field {
 			),
 		field.String(CreateByColumnName).
 			Immutable().
+			Optional().
+			Nillable().
 			Annotations(
 				entgql.OrderField("createdBy"),
 			),

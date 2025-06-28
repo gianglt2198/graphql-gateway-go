@@ -1,0 +1,12 @@
+extend type Query {
+  category(id: ID!): Category!
+
+  categories(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: [CategoryOrder!]
+    where: CategoryFilter
+  ): CategoryConnection!
+}

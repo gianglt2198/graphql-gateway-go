@@ -6,11 +6,12 @@ import (
 	"entgo.io/contrib/entgql"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
+	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 )
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	return r.db.User.Query().Paginate(ctx, after, first, before, last, ent.WithUserFilter(where.Filter))
+func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.UserOrder, where *model.UserFilter) (*ent.UserConnection, error) {
+	return r.userService.FindUsers(ctx, after, first, before, last, orderBy, where)
 }
 
 // AccountCreateUser is the resolver for the accountCreateUser field.

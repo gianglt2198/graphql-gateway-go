@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
 	"github.com/gianglt2198/federation-go/package/modules/db/mixin"
@@ -19,9 +20,9 @@ func (User) Fields() []ent.Field {
 		field.String("username").Unique(),
 		field.String("email").Unique(),
 		field.String("password").Sensitive(),
-		field.String("first_name"),
-		field.String("last_name"),
-		field.String("phone"),
+		field.String("first_name").Nillable().Optional(),
+		field.String("last_name").Nillable().Optional(),
+		field.String("phone").Nillable().Optional(),
 	}
 }
 
@@ -43,5 +44,7 @@ func (User) Annotations() []schema.Annotation {
 }
 
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("sessions", Session.Type).Unique(),
+	}
 }

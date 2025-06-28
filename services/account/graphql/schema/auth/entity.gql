@@ -5,6 +5,6 @@ type LoginEntity {
 type AuthVerifyEntity @key(fields: "id") {
   id: ID!
   userID: ID!
-  sessionExpired: Time!
+  sessionExpiredAt: Time!
   lastUsedAt: Time!
 }

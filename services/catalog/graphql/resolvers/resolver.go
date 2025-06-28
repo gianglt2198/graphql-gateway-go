@@ -11,7 +11,7 @@ import (
 type Resolver struct {
 	log *monitoring.Logger
 
-	categoryService services.ProductService
+	categoryService services.CategoryService
 	productService  services.ProductService
 }
 
@@ -20,7 +20,7 @@ type ResolverParams struct {
 
 	Log *monitoring.Logger
 
-	CategoryService services.ProductService
+	CategoryService services.CategoryService
 	ProductService  services.ProductService
 }
 

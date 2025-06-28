@@ -1,0 +1,5 @@
+input CategoryFilter {
+  ids: [ID!]
+  name: String
+  productIDs: [ID!]
+}

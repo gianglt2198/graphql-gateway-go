@@ -8,7 +8,9 @@ import (
 )
 
 // AccountConfig holds account service specific settings
-type AccountConfig struct{}
+type AccountConfig struct {
+	ExpiredDuration int32 `mapstructure:"expired_duration"` // in hours
+}
 
 // Load loads the configuration for the account service
 func Load() (*config.Config[AccountConfig], error) {

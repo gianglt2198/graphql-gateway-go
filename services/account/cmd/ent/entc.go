@@ -15,9 +15,8 @@ import (
 func main() {
 	ex, err := entgql.NewExtension(
 		entgql.WithSchemaGenerator(),
-		entgql.WithWhereInputs(true),
-		entgql.WithSchemaPath("./graphql/schema/ent.gql"),
 		entgql.WithConfigPath("./gqlgen.yml"),
+		entgql.WithRelaySpec(true),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)
@@ -38,8 +37,10 @@ func main() {
 			gen.FeatureIntercept,
 			gen.FeatureUpsert,
 			gen.FeatureVersionedMigration,
-			gen.FeatureEntQL,
 			gen.FeatureNamedEdges,
+			gen.FeatureExecQuery,
+			gen.FeatureBidiEdgeRefs,
+			gen.FeatureModifier,
 		},
 	}, opts...); err != nil {
 		log.Fatalf("running ent codegen: %v", err)

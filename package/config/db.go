@@ -15,7 +15,7 @@ type DatabaseConfig struct {
 	Database        string        `mapstructure:"database"`
 	SSLMode         string        `mapstructure:"ssl_mode"`
 	MaxOpenConns    int           `mapstructure:"max_open_conns"`
-	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
+	MinIdleConns    int           `mapstructure:"min_idle_conns"`
 	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
 	MigrationsPath  string        `mapstructure:"migrations_path"`
 }

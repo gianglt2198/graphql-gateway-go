@@ -1,0 +1,11 @@
+input CategoryOrder {
+  direction: OrderDirection! = ASC
+  field: CategoryOrderField!
+}
+
+enum CategoryOrderField {
+  createdAt
+  createdBy
+  updatedAt
+  updatedBy
+}

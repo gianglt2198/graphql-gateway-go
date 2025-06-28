@@ -41,6 +41,7 @@ func (Category) Annotations() []schema.Annotation {
 
 func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("products", Product.Type).Annotations(entgql.RelayConnection(), entsql.OnDelete(entsql.Cascade)),
+		edge.From("products", Product.Type).Ref("categories").
+			Annotations(entgql.RelayConnection(), entsql.OnDelete(entsql.Cascade)),
 	}
 }

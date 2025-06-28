@@ -1,0 +1,10 @@
+extend type Query {
+  users(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: [UserOrder!]
+    where: UserFilter
+  ): UserConnection!
+}

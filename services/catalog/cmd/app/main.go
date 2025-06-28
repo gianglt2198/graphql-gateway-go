@@ -9,6 +9,8 @@ import (
 
 	"github.com/gianglt2198/federation-go/services/catalog/config"
 	"github.com/gianglt2198/federation-go/services/catalog/infra"
+
+	_ "github.com/gianglt2198/federation-go/services/catalog/generated/ent/runtime"
 )
 
 func main() {

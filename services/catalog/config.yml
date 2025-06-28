@@ -2,16 +2,16 @@ app:
   name: "catalog"
   version: "0.1.0"
   environment: "development"
-  debug: false
+  debug: true
 
 database:
   driver: "postgres"
   host: "localhost"
-  port: 5432
+  port: 5433
   user: "username"
   password: "password"
   database: "catalog"
-  sslmode: "disable"
+  ssl_mode: "disable"
 
 metrics:
   enabled: false
@@ -23,7 +23,7 @@ metrics:
 servers:
   http:
     enabled: true
-    port: 8083
+    port: 8084
     read_timeout: 30
     write_timeout: 30
     idle_timeout: 120

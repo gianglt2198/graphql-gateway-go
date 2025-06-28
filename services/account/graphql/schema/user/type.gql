@@ -1,0 +1,23 @@
+type UserConnection {
+  edges: [UserEdge]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User
+  cursor: Cursor!
+}
+
+type User implements Node {
+  id: ID!
+  createdAt: Time!
+  createdBy: String!
+  updatedAt: Time!
+  updatedBy: String
+  username: String!
+  email: String!
+  firstName: String
+  lastName: String
+  phone: String
+}
