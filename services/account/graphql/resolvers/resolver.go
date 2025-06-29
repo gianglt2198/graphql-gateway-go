@@ -47,7 +47,7 @@ type (
 	mutationResolver struct{ *Resolver }
 )
 
-func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
+// func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 

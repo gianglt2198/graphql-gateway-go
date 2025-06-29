@@ -1,5 +1,5 @@
 extend type Mutation {
-  createProduct(input: CreateProductInput!): Boolean!
-  updateProduct(id: ID!, input: UpdateProductInput!): Boolean!
-  deleteProduct(id: ID!): Boolean!
+  catalogCreateProduct(input: CreateProductInput!): Boolean!
+  catalogUpdateProduct(id: ID!, input: UpdateProductInput!): Boolean!
+  catalogDeleteProduct(id: ID!): Boolean!
 }

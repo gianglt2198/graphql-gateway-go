@@ -19,6 +19,7 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/utils"
 	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
 )
@@ -33,11 +34,6 @@ type graphqlServer struct {
 	exec *executor.Executor
 }
 
-type GraphqlServer interface {
-	Start() error
-	Stop() error
-}
-
 type ServerParams struct {
 	fx.In
 
@@ -50,7 +46,7 @@ type ServerParams struct {
 	ExecutableSchema graphql.ExecutableSchema
 }
 
-func New(params ServerParams) GraphqlServer {
+func New(params ServerParams) common.GraphqlServer {
 	exec := executor.New(params.ExecutableSchema)
 	exec.Use(&extension.Introspection{})
 	exec.Use(&extension.AutomaticPersistedQuery{

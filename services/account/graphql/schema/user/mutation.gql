@@ -1,5 +1,5 @@
 extend type Mutation {
   accountCreateUser(input: CreateUserInput!): Boolean!
-  accountUpdateUser(id: ID!, input: UpdateUserInput!): Boolean!
-  accountDeleteUser(id: ID!): Boolean!
+  accountUpdateUser(id: String!, input: UpdateUserInput!): Boolean!
+  accountDeleteUser(id: String!): Boolean!
 }

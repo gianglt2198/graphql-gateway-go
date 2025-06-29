@@ -1,128 +1,333 @@
-<context>
-# Overview  
-We are building a comprehensive GraphQL Federation architecture in Go that creates a super-graph by gathering all sub-graphs through introspection. The system will consist of a federation gateway, aggregator services, and multiple microservices, all connected through NATS messaging for inter-service communication.
+# GraphQL Federation Module Development Plan
+## Product Requirements Document (PRD)
 
-# Core Features  
-- **Federation Gateway**: A Go-based GraphQL federation gateway that serves as the main entry point for clients
-- **Federation Aggregator**: A Go-based service that aggregates and manages sub-graph schemas through introspection
-- **Sub-graph Services**: Multiple Go microservices that expose GraphQL schemas and can be federated
-- **NATS Messaging**: Core messaging system for inter-service communication and event-driven architecture
-- **Schema Introspection**: Automatic discovery and composition of sub-graph schemas into a unified super-graph
-- **Service Registry**: Dynamic service discovery and registration using etcd
-- **Monitoring & Observability**: Comprehensive logging, metrics, and tracing across all services
+### Overview
+Build a comprehensive GraphQL Federation module based on the wundergraph/graphql-go-tools library to enable distributed GraphQL architecture across microservices. This module will serve as the central gateway for federating multiple GraphQL subgraphs into a unified supergraph.
 
-# User Experience  
-- **Developers**: Single GraphQL endpoint for all queries, seamless federation experience
-- **Service Teams**: Independent development and deployment of sub-graph services
-- **Operations**: Centralized monitoring, logging, and service management
-- **API Consumers**: Unified GraphQL API that abstracts the complexity of microservices
-</context>
+### Core Objectives
+1. **High Performance**: Leverage wundergraph/graphql-go-tools v2 for 8x better performance than Apollo Router
+2. **Production Ready**: Full observability, monitoring, and enterprise features
+3. **Standards Compliant**: Support both Federation v1 and v2 specifications
+4. **Scalable Architecture**: Handle high-throughput scenarios with minimal latency
+5. **Developer Experience**: Easy configuration, debugging, and maintenance
 
-<PRD>
-# Technical Architecture  
+### Target Architecture
+- **Gateway**: Centralized federation gateway handling unified GraphQL schema
+- **Subgraph Registry**: Dynamic registration and management of subgraph services
+- **Query Planning**: Intelligent query distribution across subgraphs
+- **Data Loading**: Optimized data fetching with batching and caching
+- **Monitoring**: Full observability with metrics, tracing, and health checks
 
-## System Components
-1. **Gateway Service** (Go)
-   - GraphQL federation gateway using gqlgen
-   - Request routing and query planning
-   - Authentication and authorization middleware
-   - Rate limiting and caching
-   - Connection to NATS for messaging
+## Feature Requirements
 
-2. **Aggregator Service** (Go)
-   - Schema introspection and composition
-   - Sub-graph discovery and registration
-   - Schema validation and conflict resolution
-   - Real-time schema updates via NATS
+### Phase 1: Foundation (Weeks 1-3)
+**Core Infrastructure & Schema Management**
 
-3. **Sub-graph Services** (Go)
-   - Account service (user management, authentication)
-   - Catalog service (product catalog, categories)
-   - Additional domain-specific services
-   - Each exposes GraphQL schema with federation directives
+#### 1.1 Subgraph Registry
+- **Dynamic Registration**: API to register/unregister subgraphs at runtime
+- **Schema Storage**: Persistent storage for subgraph schemas and metadata
+- **Schema Validation**: Validate subgraph schemas for federation compatibility
+- **Health Monitoring**: Track subgraph availability and health status
+- **Configuration Management**: Support for headers, timeouts, retries per subgraph
 
-4. **Infrastructure Components**
-   - NATS messaging system for inter-service communication
-   - etcd for service discovery and configuration
-   - Redis for caching and session management
-   - PostgreSQL databases for each service
-   - Monitoring stack (Prometheus, Grafana)
+#### 1.2 Schema Composition
+- **Federation Schema Generation**: Compose unified supergraph from subgraphs
+- **Entity Resolution**: Handle @key, @external, @requires, @provides directives
+- **Schema Validation**: Validate composed schema for conflicts and compatibility
+- **Type Merging**: Merge types across subgraphs with federation rules
+- **Schema Introspection**: Support GraphQL introspection on composed schema
 
-## Data Models
-- **Federation Schema**: Composed super-graph schema
-- **Service Registry**: Service metadata and health status
-- **User Context**: Authentication and authorization data
-- **Domain Models**: Service-specific data models (users, products, etc.)
+#### 1.3 Basic Query Planning
+- **Query Parsing**: Parse and validate incoming GraphQL queries
+- **Query Decomposition**: Break down queries into subgraph-specific parts
+- **Execution Planning**: Create optimal execution plan for distributed queries
+- **Field Selection**: Map query fields to appropriate subgraphs
+- **Dependency Analysis**: Identify query dependencies and execution order
 
-## APIs and Integrations
-- **GraphQL Federation API**: Main client-facing API
-- **Service Discovery API**: Internal service registration
-- **Health Check API**: Service health monitoring
-- **Admin API**: Schema management and monitoring
+#### 1.4 Core Configuration
+- **YAML Configuration**: File-based configuration for subgraphs and settings
+- **Environment Variables**: Support for environment-based configuration
+- **Validation**: Configuration validation and error reporting
+- **Hot Reload**: Support for configuration updates without restart
 
-## Infrastructure Requirements
-- **Container Orchestration**: Docker and Docker Compose for development
-- **Service Mesh**: NATS for messaging and communication
-- **Database**: PostgreSQL for persistent storage
-- **Cache**: Redis for performance optimization
-- **Monitoring**: Prometheus and Grafana for observability
+### Phase 2: Query Execution & Optimization (Weeks 4-6)
+**Performance & Data Loading**
 
-# Development Roadmap  
+#### 2.1 Data Source Management
+- **HTTP Client**: Optimized HTTP client for subgraph communication
+- **Connection Pooling**: Efficient connection management to subgraphs
+- **Timeout Handling**: Configurable timeouts and retry logic
+- **Error Handling**: Comprehensive error handling and propagation
+- **Request/Response Transformation**: Header forwarding and response mapping
 
-## Phase 1: Foundation Infrastructure
-- Set up project structure and build system
-- Implement NATS messaging infrastructure
-- Create service discovery with etcd
-- Set up monitoring and logging framework
-- Implement basic health checks and service registration
+#### 2.2 Query Execution Engine
+- **Parallel Execution**: Execute independent queries in parallel
+- **Data Loading**: Efficient data fetching from multiple subgraphs
+- **Result Merging**: Merge results from multiple subgraphs into unified response
+- **Error Aggregation**: Collect and format errors from all subgraphs
+- **Context Propagation**: Forward context and tracing information
 
-## Phase 2: Core Federation Components
-- Develop GraphQL federation gateway
-- Implement schema aggregator service
-- Create schema introspection and composition logic
-- Build query planning and execution engine
-- Implement basic authentication and middleware
+#### 2.3 Batching & Optimization
+- **Entity Batching**: Batch entity resolution requests using DataLoader pattern
+- **Query Deduplication**: Avoid duplicate requests to same subgraph
+- **Field Batching**: Batch multiple field requests into single query
+- **Cache Optimization**: Leverage query result caching
+- **Dataloader 3.0**: Implement wundergraph's advanced dataloader pattern
 
-## Phase 3: Sub-graph Services
-- Develop Account service with GraphQL schema
-- Implement Catalog service with federation directives
-- Create database schemas and migrations
-- Implement service-to-service communication via NATS
-- Add comprehensive error handling and validation
+#### 2.4 Caching Layer
+- **Query Plan Caching**: Cache query execution plans
+- **Result Caching**: Cache query results with TTL
+- **Redis Integration**: Support Redis for distributed caching
+- **Cache Invalidation**: Smart cache invalidation strategies
+- **Cache Metrics**: Monitor cache hit rates and performance
 
-## Phase 4: Advanced Features
-- Implement advanced query optimization
-- Add comprehensive caching strategies
-- Implement real-time schema updates
-- Add advanced monitoring and alerting
-- Implement performance optimization and load balancing
+### Phase 3: Advanced Features (Weeks 7-9)
+**Enterprise Features & Monitoring**
 
-## Phase 5: Production Readiness
-- Add comprehensive testing (unit, integration, e2e)
-- Implement security hardening
-- Add deployment automation
-- Implement backup and disaster recovery
-- Add comprehensive documentation
+#### 3.1 Authentication & Authorization
+- **JWT Authentication**: Validate JWT tokens and extract user context
+- **Header Forwarding**: Forward authentication headers to subgraphs
+- **User Context**: Propagate user information across subgraph requests
+- **Role-Based Access**: Support for role-based field-level authorization
+- **API Key Management**: Support for API key authentication
 
-# Logical Dependency Chain
-1. **Infrastructure First**: NATS, etcd, monitoring must be established before services
-2. **Service Discovery**: Required before any service can register or communicate
-3. **Gateway Foundation**: Basic gateway before federation logic
-4. **Schema Management**: Aggregator must exist before sub-graphs can be federated
-5. **Sub-graph Services**: Can be developed in parallel once foundation is ready
-6. **Federation Logic**: Schema composition and query planning
-7. **Advanced Features**: Built on top of working federation system
+#### 3.2 Security Features
+- **Query Complexity Analysis**: Prevent complex queries from overloading system
+- **Query Depth Limiting**: Limit maximum query depth
+- **Rate Limiting**: Per-user/per-IP rate limiting
+- **CORS Support**: Configurable CORS policies
+- **Content Security Policy**: CSP header management
+- **Query Allowlisting**: Support for persisted/trusted queries
 
-# Risks and Mitigations  
-- **Schema Conflicts**: Implement robust schema validation and conflict resolution
-- **Service Dependencies**: Use circuit breakers and graceful degradation
-- **Performance**: Implement comprehensive caching and query optimization
-- **Complexity**: Start with simple federation and gradually add complexity
-- **Testing**: Implement comprehensive testing strategy from the beginning
+#### 3.3 Monitoring & Observability
+- **Prometheus Metrics**: Comprehensive metrics for gateway and subgraphs
+- **OpenTelemetry Tracing**: Distributed tracing across federation calls
+- **Health Checks**: Health check endpoints for gateway and subgraphs
+- **Request Logging**: Structured logging with correlation IDs
+- **Performance Monitoring**: Track query performance and bottlenecks
 
-# Appendix  
-- **GraphQL Federation Specification**: Apollo Federation 2.0 compatible
-- **Go Libraries**: gqlgen, NATS client, etcd client, Redis client
-- **Database**: PostgreSQL with proper indexing and optimization
-- **Monitoring**: Prometheus metrics, structured logging, distributed tracing
-</PRD>
+#### 3.4 Developer Experience
+- **GraphQL Playground**: Integrated GraphQL IDE for development
+- **Schema Explorer**: Visual schema exploration and documentation
+- **Query Introspection**: Full introspection support
+- **Debug Mode**: Enhanced debugging and query analysis
+- **Schema Diff**: Track schema changes and compatibility
+
+### Phase 4: Advanced GraphQL Features (Weeks 10-12)
+**Subscriptions & Advanced Capabilities**
+
+#### 4.1 GraphQL Subscriptions
+- **WebSocket Support**: Real-time subscriptions over WebSocket
+- **Server-Sent Events**: Alternative subscription transport
+- **Subscription Routing**: Route subscriptions to appropriate subgraphs
+- **Connection Management**: Manage subscription connections and cleanup
+- **Event-Driven Federation**: Support for event-driven federated subscriptions
+
+#### 4.2 Federation v2 Features
+- **@link Directive**: Support for schema linking
+- **@shareable**: Handle shareable fields across subgraphs
+- **@inaccessible**: Hide fields from supergraph
+- **@override**: Support field overriding between subgraphs
+- **@composeDirective**: Custom directive composition
+
+#### 4.3 Advanced Query Features
+- **Persisted Queries**: Support for persisted/trusted document store
+- **Query Fragments**: Efficient fragment handling across subgraphs
+- **Interface & Union Support**: Complex type resolution across subgraphs
+- **Custom Scalars**: Handle custom scalar types in federation
+- **Upload Support**: File upload handling in federated context
+
+#### 4.4 Deployment & Scaling
+- **Container Support**: Docker containerization with health checks
+- **Kubernetes Integration**: Kubernetes deployment manifests
+- **Load Balancing**: Support for load-balanced subgraph endpoints
+- **Circuit Breaker**: Protect against cascading failures
+- **Graceful Shutdown**: Proper shutdown handling and connection draining
+
+### Phase 5: Production Hardening (Weeks 13-15)
+**Production-Ready Features**
+
+#### 5.1 High Availability
+- **Multi-Region Support**: Deploy across multiple regions
+- **Fallback Strategies**: Graceful degradation when subgraphs fail
+- **Service Discovery**: Integration with service discovery systems
+- **Config Management**: External configuration management integration
+- **Blue-Green Deployment**: Support for zero-downtime deployments
+
+#### 5.2 Performance Optimization
+- **Query Optimization**: Advanced query optimization techniques
+- **Connection Optimization**: Optimize HTTP/2 and connection reuse
+- **Memory Management**: Efficient memory usage and garbage collection
+- **CPU Optimization**: Profile and optimize CPU-intensive operations
+- **Benchmarking**: Performance benchmarking and regression testing
+
+#### 5.3 Enterprise Integration
+- **API Gateway Integration**: Integration with existing API gateways
+- **Service Mesh**: Support for service mesh environments
+- **Security Scanning**: Security vulnerability scanning
+- **Compliance**: SOC2, GDPR compliance features
+- **Audit Logging**: Comprehensive audit trail
+
+#### 5.4 Documentation & Testing
+- **API Documentation**: Complete API documentation
+- **Configuration Guide**: Comprehensive configuration documentation
+- **Best Practices**: Federation best practices and patterns
+- **Integration Tests**: End-to-end integration testing
+- **Performance Tests**: Load testing and benchmarking
+
+## Technical Implementation Plan
+
+### Technology Stack
+- **Core Library**: wundergraph/graphql-go-tools v2
+- **Language**: Go 1.22+
+- **Framework Integration**: gqlgen for GraphQL schema generation
+- **Dependencies**: Ent ORM, Uber FX, Zap logging, Viper config
+- **Caching**: Redis for distributed caching
+- **Monitoring**: Prometheus + OpenTelemetry
+- **Testing**: Go testing framework + testcontainers
+
+### Architecture Components
+
+#### 1. Federation Gateway
+```go
+type FederationGateway struct {
+    registry     SubgraphRegistry
+    planner      QueryPlanner
+    executor     QueryExecutor
+    cache        CacheManager
+    monitor      MonitoringManager
+}
+```
+
+#### 2. Subgraph Registry
+```go
+type SubgraphRegistry struct {
+    subgraphs    map[string]*Subgraph
+    schemas      SchemaStore
+    healthCheck  HealthChecker
+}
+```
+
+#### 3. Query Planning Engine
+```go
+type QueryPlanner struct {
+    schema       *ast.Document
+    planner      *plan.Planner
+    normalizer   *astnormalization.Normalizer
+    validator    *astvalidation.OperationValidator
+}
+```
+
+#### 4. Data Source Manager
+```go
+type DataSourceManager struct {
+    clients      map[string]*http.Client
+    batcher      *BatchManager
+    circuitBreaker *CircuitBreaker
+}
+```
+
+### Integration Points
+
+#### 1. Existing GraphQL Module Integration
+- Extend existing GraphQL server to support federation
+- Add federation-specific middleware and handlers
+- Integrate with existing authentication and monitoring
+
+#### 2. Configuration Integration
+- Extend existing Viper configuration structure
+- Add federation-specific configuration sections
+- Support for environment-based configuration
+
+#### 3. Monitoring Integration
+- Leverage existing Prometheus metrics infrastructure
+- Extend logging with federation-specific events
+- Add federation health checks to existing health system
+
+## Timeline & Milestones
+
+### Week 1-3: Foundation
+- ✅ **Milestone 1**: Basic subgraph registry and schema composition
+- **Deliverables**: 
+  - Subgraph registration API
+  - Basic schema composition
+  - Configuration management
+  - Unit tests
+
+### Week 4-6: Core Execution
+- ✅ **Milestone 2**: Query planning and execution engine
+- **Deliverables**:
+  - Query planner implementation
+  - Data source management
+  - Basic caching layer
+  - Integration tests
+
+### Week 7-9: Enterprise Features
+- ✅ **Milestone 3**: Authentication, authorization, and monitoring
+- **Deliverables**:
+  - JWT authentication
+  - Prometheus metrics
+  - OpenTelemetry tracing
+  - Security features
+
+### Week 10-12: Advanced Features
+- ✅ **Milestone 4**: Subscriptions and Federation v2
+- **Deliverables**:
+  - WebSocket subscriptions
+  - Federation v2 directives
+  - Advanced query features
+  - Performance optimization
+
+### Week 13-15: Production Ready
+- ✅ **Milestone 5**: Production hardening and documentation
+- **Deliverables**:
+  - High availability features
+  - Complete documentation
+  - Load testing results
+  - Deployment guides
+
+## Success Criteria
+
+### Performance Targets
+- **Latency**: P99 latency < 100ms for federated queries
+- **Throughput**: Support 1000+ concurrent requests
+- **Memory**: < 256MB memory usage under load
+- **CPU**: < 50% CPU usage under normal load
+
+### Reliability Targets
+- **Uptime**: 99.9% uptime SLA
+- **Error Rate**: < 0.1% error rate
+- **Recovery**: < 30s recovery time from subgraph failures
+- **Monitoring**: 100% observability coverage
+
+### Developer Experience
+- **Setup Time**: < 30 minutes from zero to running federation
+- **Configuration**: Zero-downtime configuration updates
+- **Debugging**: Complete query execution visibility
+- **Documentation**: Comprehensive guides and examples
+
+## Risk Assessment
+
+### Technical Risks
+- **Complexity**: GraphQL federation adds significant complexity
+- **Performance**: Network latency between subgraphs
+- **Compatibility**: Ensuring compatibility with existing services
+
+### Mitigation Strategies
+- **Incremental Development**: Build and test features incrementally
+- **Performance Testing**: Continuous performance monitoring and testing
+- **Backward Compatibility**: Maintain compatibility with existing GraphQL setup
+
+## Resource Requirements
+
+### Development Team
+- **Lead Developer**: GraphQL federation expertise (1 person)
+- **Backend Developer**: Go development and microservices (1 person)
+- **DevOps Engineer**: Kubernetes and monitoring setup (0.5 person)
+
+### Infrastructure
+- **Development Environment**: Local development setup with Docker
+- **Testing Environment**: Kubernetes cluster for integration testing
+- **Production Environment**: Production-ready Kubernetes deployment
+
+This comprehensive plan provides a structured approach to building a production-ready GraphQL federation module that leverages the high-performance wundergraph/graphql-go-tools library while integrating seamlessly with your existing Go microservices architecture.

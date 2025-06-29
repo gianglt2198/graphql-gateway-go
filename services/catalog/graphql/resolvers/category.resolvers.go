@@ -19,7 +19,7 @@ func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[str
 }
 
 // CreateCategory is the resolver for the createCategory field.
-func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (bool, error) {
+func (r *mutationResolver) CatalogCreateCategory(ctx context.Context, input ent.CreateCategoryInput) (bool, error) {
 	_, err := r.categoryService.CreateCategory(ctx, input)
 	if err != nil {
 		return false, err
@@ -28,7 +28,7 @@ func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateC
 }
 
 // UpdateCategory is the resolver for the updateCategory field.
-func (r *mutationResolver) UpdateCategory(ctx context.Context, id string, input ent.UpdateCategoryInput) (bool, error) {
+func (r *mutationResolver) CatalogUpdateCategory(ctx context.Context, id string, input ent.UpdateCategoryInput) (bool, error) {
 	_, err := r.categoryService.UpdateCategory(ctx, id, input)
 	if err != nil {
 		return false, err
@@ -37,7 +37,7 @@ func (r *mutationResolver) UpdateCategory(ctx context.Context, id string, input 
 }
 
 // DeleteCategory is the resolver for the deleteCategory field.
-func (r *mutationResolver) DeleteCategory(ctx context.Context, id string) (bool, error) {
+func (r *mutationResolver) CatalogDeleteCategory(ctx context.Context, id string) (bool, error) {
 	err := r.categoryService.DeleteCategory(ctx, id)
 	if err != nil {
 		return false, err

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/gianglt2198/federation-go/package/platform"
 	"github.com/gianglt2198/federation-go/services/gateway/config"
 	"github.com/gianglt2198/federation-go/services/gateway/infra"
+	"go.uber.org/fx"
 )
 
 func main() {
@@ -19,7 +21,9 @@ func main() {
 		infra.Module,
 	)
 
-	if err := app.Run(); err != nil {
-		log.Fatalf("Application failed: %v", err)
-	}
+	app.Run(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return nil
+		},
+	})
 }

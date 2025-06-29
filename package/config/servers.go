@@ -2,8 +2,9 @@ package config
 
 // ServerConfig holds server-specific configuration
 type ServerConfig struct {
-	HTTP    HTTPConfig    `mapstructure:"http"`
-	GraphQL GraphQLConfig `mapstructure:"graphql"`
+	HTTP       HTTPConfig       `mapstructure:"http"`
+	GraphQL    GraphQLConfig    `mapstructure:"graphql"`
+	Federation FederationConfig `mapstructure:"federation"`
 }
 
 type HTTPConfig struct {
@@ -17,4 +18,18 @@ type HTTPConfig struct {
 type GraphQLConfig struct {
 	Enabled    bool `mapstructure:"enabled"`
 	Playground bool `mapstructure:"playground"`
+}
+
+type FederationConfig struct {
+	Enabled    bool             `mapstructure:"enabled"`
+	Playground bool             `mapstructure:"playground"`
+	Subgraphs  []SubgraphConfig `mapstructure:"subgraphs" json:"subgraphs"`
+}
+
+type SubgraphConfig struct {
+	Name    string            `mapstructure:"name" json:"name"`
+	URL     string            `mapstructure:"url" json:"url"`
+	Headers map[string]string `mapstructure:"headers" json:"headers"`
+	Timeout int               `mapstructure:"timeout" json:"timeout"`
+	Retries int               `mapstructure:"retries" json:"retries"`
 }

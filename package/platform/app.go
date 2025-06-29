@@ -33,6 +33,7 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Supply(cfg.App),
 		fx.Supply(cfg.Servers.HTTP),
 		fx.Supply(cfg.Servers.GraphQL),
+		fx.Supply(cfg.Servers.Federation),
 		fx.Supply(cfg.Metrics),
 		fx.Supply(cfg.Database),
 		fx.Supply(cfg.ETCD),
@@ -62,6 +63,10 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 
 	if cfg.Servers.GraphQL.Enabled {
 		coreModules = append(coreModules, graphqlservice.Module)
+	}
+
+	if cfg.Servers.Federation.Enabled {
+		coreModules = append(coreModules, graphqlservice.FModule)
 	}
 
 	// Combine core modules with provided modules

@@ -30,7 +30,6 @@ autobind:
 models:
   ID:
     model:
-      - github.com/99designs/gqlgen/graphql.ID
       - github.com/99designs/gqlgen/graphql.String
   UUID:
     model:

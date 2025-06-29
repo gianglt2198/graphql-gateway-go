@@ -10,13 +10,21 @@ import (
 	"entgo.io/ent/entc/gen"
 
 	"github.com/gianglt2198/federation-go/package/modules/db"
+	"github.com/gianglt2198/federation-go/services/account/cmd/ent/federation"
 )
 
 func main() {
 	ex, err := entgql.NewExtension(
 		entgql.WithSchemaGenerator(),
 		entgql.WithConfigPath("./gqlgen.yml"),
+		entgql.WithSchemaPath("./graphql/schema/definition.gql"),
 		entgql.WithRelaySpec(true),
+		entgql.WithSchemaHook(federation.RemoveNodeQueries,
+			federation.RemoveMutationInput,
+			federation.RemoveEntitiesImplementingNode,
+			federation.RemoveEntitiesImplementingOrder,
+			federation.RemoveEntitiesImplementingConnection,
+		),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)

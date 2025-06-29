@@ -7,18 +7,26 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/server"
 )
 
-var Module = fx.Module("graphql-server",
-	fx.Provide(server.New),
+var Module = fx.Module("graphql-module",
+	fx.Provide(fx.Annotate(server.New, fx.As(new(common.GraphqlServer)))),
+	fx.Invoke(RegisterGraphQLServer),
+)
+
+var FModule = fx.Module("federation-module",
+	fx.Provide(federation.NewSchemaRegistry),
+	fx.Provide(fx.Annotate(federation.New, fx.As(new(common.GraphqlServer)))),
 	fx.Invoke(RegisterGraphQLServer),
 )
 
 func RegisterGraphQLServer(
 	Lifecycle fx.Lifecycle,
 	Log *monitoring.Logger,
-	GraphQLService server.GraphqlServer,
+	GraphQLService common.GraphqlServer,
 ) {
 	Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

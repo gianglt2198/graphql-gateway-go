@@ -2,9 +2,9 @@ type LoginEntity {
   token: String!
 }
 
-type AuthVerifyEntity @key(fields: "id") {
-  id: ID!
-  userID: ID!
+type AuthVerifyEntity {
+  id: String!
+  userID: String!
   sessionExpiredAt: Time!
   lastUsedAt: Time!
 }

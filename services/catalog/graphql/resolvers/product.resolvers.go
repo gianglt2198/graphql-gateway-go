@@ -14,7 +14,7 @@ func (r *queryResolver) Products(ctx context.Context, after *entgql.Cursor[strin
 }
 
 // CreateProduct is the resolver for the createProduct field.
-func (r *mutationResolver) CreateProduct(ctx context.Context, input ent.CreateProductInput) (bool, error) {
+func (r *mutationResolver) CatalogCreateProduct(ctx context.Context, input ent.CreateProductInput) (bool, error) {
 	_, err := r.productService.CreateProduct(ctx, input)
 	if err != nil {
 		return false, err
@@ -23,7 +23,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input ent.CreatePr
 }
 
 // UpdateProduct is the resolver for the updateProduct field.
-func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input ent.UpdateProductInput) (bool, error) {
+func (r *mutationResolver) CatalogUpdateProduct(ctx context.Context, id string, input ent.UpdateProductInput) (bool, error) {
 	_, err := r.productService.UpdateProduct(ctx, id, input)
 	if err != nil {
 		return false, err
@@ -32,7 +32,7 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input e
 }
 
 // DeleteProduct is the resolver for the deleteProduct field.
-func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (bool, error) {
+func (r *mutationResolver) CatalogDeleteProduct(ctx context.Context, id string) (bool, error) {
 	err := r.productService.DeleteProduct(ctx, id)
 	if err != nil {
 		return false, err

@@ -1,28 +1,40 @@
 app:
-  name: "gateway-service"
+  name: "gateway"
   version: "0.1.0"
   environment: "development"
-  debug: false
-
-server:
-  port: 8080
-  read_timeout: 30
-  write_timeout: 30
-  idle_timeout: 120
+  debug: true
 
 metrics:
-  enabled: false
-  port: 9090
+  enabled: true
+  port: 9095
   path: "/metrics"
   namespace: "federation"
   subsystem: "gateway"
 
-service:
-  graphql:
-    playground: true 
-    introspection: true
-    path: "/graphql"
-    complexity_limit: 1000
-  gateway:
-    subgraph_timeout: 1000
-    max_concurrent_requests: 100
+servers:
+  http:
+    enabled: true
+    port: 8082
+    read_timeout: 30
+    write_timeout: 30
+    idle_timeout: 120
+  federation:
+    enabled: true
+    playground: true
+    
+    # Subgraph configurations
+    subgraphs:
+      - name: account
+        url: http://localhost:8083/graphql
+        timeout: 30
+        retries: 3
+        headers:
+          Content-Type: application/json
+          Authorization: "${ACCOUNT_TOKEN:-}"
+      - name: catalog
+        url: http://localhost:8084/graphql
+        timeout: 30
+        retries: 3
+        headers:
+          Content-Type: application/json
+          Authorization: "${CATALOG_TOKEN:-}"
