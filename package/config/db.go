@@ -8,6 +8,7 @@ import (
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
 	Driver          string        `mapstructure:"driver"`
+	Debug           bool          `mapstructure:"debug"`
 	Host            string        `mapstructure:"host"`
 	Port            int           `mapstructure:"port"`
 	Username        string        `mapstructure:"user"`

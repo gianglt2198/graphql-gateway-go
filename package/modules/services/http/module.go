@@ -20,6 +20,10 @@ func RegisterHTTPServer(
 	Log *monitoring.Logger,
 	HTTPServer server.HTTPServer,
 ) {
+	if HTTPServer == nil {
+		return
+	}
+
 	Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			Log.Info("Starting HTTP server...")

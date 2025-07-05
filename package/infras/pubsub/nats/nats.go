@@ -2,6 +2,7 @@ package psnats
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -34,23 +35,27 @@ type (
 
 var _ pubsub.Client = (*natsProvider)(nil)
 var _ pubsub.QueueSubscriber = (*natsProvider)(nil)
-var _ pubsub.Broker[nats.Msg] = (*natsProvider)(nil)
+var _ pubsub.Broker = (*natsProvider)(nil)
 
 type NatsParams struct {
 	fx.In
 
-	Log       *monitoring.Logger
-	Config    config.NATSConfig
-	SeqModels []serdes.Serializer
+	Log      *monitoring.Logger
+	Config   config.NATSConfig
+	SeqModel serdes.Serializer
 }
 
 func New(params NatsParams) *natsProvider {
 	provider := connect(params.Log, params.Config)
-	provider.factory = NewMessageFactory(provider, params.SeqModels)
+	provider.factory = NewMessageFactory(provider, params.SeqModel)
 	return provider
 }
 
 func connect(log *monitoring.Logger, cfg config.NATSConfig) *natsProvider {
+	if !cfg.Enabled {
+		return nil
+	}
+
 	options := []nats.Option{
 		nats.Name(cfg.Name),
 		nats.PingInterval(cfg.PingInterval),
@@ -79,6 +84,7 @@ func connect(log *monitoring.Logger, cfg config.NATSConfig) *natsProvider {
 		nc:            nc,
 		log:           log,
 		subscriptions: make(map[string]*nats.Subscription),
+		chans:         make(map[string]chan *nats.Msg),
 	}
 }
 
@@ -95,33 +101,49 @@ func (n *natsProvider) Subscribe(ctx context.Context, topic string, handler pubs
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	if _, exists := n.subscriptions[topic]; exists {
-		n.log.GetLogger().Warn("Subscription already exists for topic", zap.String("topic", topic))
+	subject := n.factory.Subject(topic)
+
+	if _, exists := n.subscriptions[subject]; exists {
+		n.log.GetLogger().Warn("Subscription already exists for topic", zap.String("topic", subject))
 		return
 	}
 
-	sub, err := n.nc.Subscribe(topic, func(msg *nats.Msg) {
+	sub, err := n.nc.Subscribe(subject, func(msg *nats.Msg) {
+		data, err := n.factory.ReadMessage(msg)
+		if err != nil {
+			n.log.GetLogger().Error("Error reading message",
+				zap.String("topic", msg.Subject),
+				zap.Error(err))
+		}
+		ctx = applyHeadersToContext(ctx, msg)
 
-		err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: msg.Data})
+		resp, err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: data})
 		if err != nil {
 			n.log.GetLogger().Error("Error processing message",
 				zap.String("topic", msg.Subject),
 				zap.Error(err))
 		}
+		if resp != nil {
+			if err := msg.RespondMsg(natsResponse(resp)); err != nil {
+				n.log.GetLogger().Error("Error responding to message",
+					zap.String("topic", msg.Subject),
+					zap.Error(err))
+			}
+		}
 	})
 
 	if err != nil {
 		n.log.GetLogger().Error("Failed to subscribe to topic",
-			zap.String("topic", topic),
+			zap.String("topic", subject),
 			zap.Error(err))
 		return
 	}
 
-	n.subscriptions[topic] = sub
+	n.subscriptions[subject] = sub
 
 	go func() {
 		<-ctx.Done()
-		_ = n.Unsubscribe(topic)
+		_ = n.Unsubscribe(subject)
 	}()
 
 	n.log.GetLogger().Info("Subscribed to topic", zap.String("topic", topic))
@@ -131,43 +153,61 @@ func (n *natsProvider) QueueSubscribe(ctx context.Context, topic string, group s
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	if _, exists := n.subscriptions[topic]; exists {
-		n.log.GetLogger().Warn("Subscription already exists for topic", zap.String("topic", topic))
+	subject := n.factory.Subject(topic)
+
+	if _, exists := n.subscriptions[subject]; exists {
+		n.log.GetLogger().Warn("Subscription already exists for topic", zap.String("topic", subject))
 		return nil
 	}
 
 	ch := make(chan *nats.Msg)
 
-	sub, err := n.nc.ChanQueueSubscribe(topic, group, ch)
+	sub, err := n.nc.ChanQueueSubscribe(subject, group, ch)
 
 	if err != nil {
 		n.log.GetLogger().Error("Failed to subscribe to topic",
-			zap.String("topic", topic),
+			zap.String("topic", subject),
 			zap.Error(err))
 		return errors.Wrap(err, "failed to subscribe to topic"+topic)
 	}
 
-	n.subscriptions[topic] = sub
-	n.chans[topic] = ch
+	n.subscriptions[subject] = sub
+	n.chans[subject] = ch
 
 	go func() {
 		defer utils.RecoverFn()
 		for msg := range ch {
-			err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: msg.Data})
+			data, err := n.factory.ReadMessage(msg)
+			if err != nil {
+				n.log.GetLogger().Error("Error reading message",
+					zap.String("topic", msg.Subject),
+					zap.Error(err))
+			}
+
+			ctx = applyHeadersToContext(ctx, msg)
+
+			resp, err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: data})
 			if err != nil {
 				n.log.GetLogger().Error("Error processing message",
 					zap.String("topic", msg.Subject),
 					zap.Error(err))
+			}
+			if resp != nil {
+				if err := msg.RespondMsg(natsResponse(resp)); err != nil {
+					n.log.GetLogger().Error("Error responding to message",
+						zap.String("topic", msg.Subject),
+						zap.Error(err))
+				}
 			}
 		}
 	}()
 
 	go func() {
 		<-ctx.Done()
-		_ = n.Unsubscribe(topic)
+		_ = n.Unsubscribe(subject)
 	}()
 
-	n.log.GetLogger().Info("Subscribed to topic", zap.String("topic", topic))
+	n.log.GetLogger().Info("Subscribed to topic", zap.String("topic", subject))
 	return nil
 }
 
@@ -175,23 +215,25 @@ func (n *natsProvider) Unsubscribe(topic string) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	if v, ok := n.chans[topic]; ok {
+	subject := n.factory.Subject(topic)
+
+	if v, ok := n.chans[subject]; ok {
 		close(v)
-		delete(n.chans, topic)
+		delete(n.chans, subject)
 	}
 
-	sub, exists := n.subscriptions[topic]
+	sub, exists := n.subscriptions[subject]
 	if !exists {
-		return fmt.Errorf("no subscription found for topic: %s", topic)
+		return fmt.Errorf("no subscription found for topic: %s", subject)
 	}
 
 	err := sub.Unsubscribe()
 	if err != nil {
-		return fmt.Errorf("failed to unsubscribe from topic %s: %w", topic, err)
+		return fmt.Errorf("failed to unsubscribe from topic %s: %w", subject, err)
 	}
 
-	delete(n.subscriptions, topic)
-	n.log.GetLogger().Info("Unsubscribed from topic", zap.String("topic", topic))
+	delete(n.subscriptions, subject)
+	n.log.GetLogger().Info("Unsubscribed from topic", zap.String("topic", subject))
 
 	return nil
 }
@@ -214,12 +256,50 @@ func (n *natsProvider) Close() error {
 	return nil
 }
 
-func (n *natsProvider) Request(ctx context.Context, pattern string, data any, attrs map[string]string, timeout time.Duration) (*nats.Msg, error) {
+func (n *natsProvider) Request(ctx context.Context, pattern string, data any, attrs map[string]string, timeout time.Duration, res any) error {
 	msg, err := n.factory.NewMessage(ctx, pattern, data, attrs)
 	if err != nil {
-		return nil, errors.Wrap(err, "new message error")
+		return errors.Wrap(err, "new message error")
 	}
 	headers := getHeaders(msg)
 	n.log.DebugC(ctx, "request to subject", zap.String("subject", msg.Subject), zap.String("type", "request"), zap.Any("headers", headers))
-	return n.nc.RequestMsg(msg, timeout*time.Second)
+	resp, err := n.nc.RequestMsg(msg, timeout*time.Second)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(resp.Data, res); err != nil {
+		return errors.Wrap(err, "unmarshal response error")
+	}
+	return nil
+}
+
+func natsResponse(resp any) *nats.Msg {
+	var data []byte
+	var err error
+	data, err = json.Marshal(resp)
+	if err != nil {
+		data = []byte(`{"error": "internal server error"}`)
+	}
+	return &nats.Msg{
+		Data: data,
+	}
+}
+
+func applyHeadersToContext(ctx context.Context, msg *nats.Msg) context.Context {
+	headers := msg.Header
+
+	for k, v := range headers {
+		if k == "start_time" {
+			startTime, err := time.Parse(time.RFC3339Nano, v[0])
+			if err != nil {
+				return ctx
+			}
+			ctx = context.WithValue(ctx, "start_time", startTime)
+			continue
+		}
+		ctx = context.WithValue(ctx, k, v[0])
+	}
+
+	return ctx
 }

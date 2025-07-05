@@ -23,8 +23,8 @@ type (
 		Close() error
 	}
 
-	Broker[T any] interface {
-		Request(ctx context.Context, pattern string, data any, attrs map[string]string, timeout time.Duration) (*T, error)
+	Broker interface {
+		Request(ctx context.Context, pattern string, data any, attrs map[string]string, timeout time.Duration, res any) error
 		Close() error
 	}
 
@@ -33,10 +33,22 @@ type (
 		Data  []byte
 	}
 
-	Handler func(ctx context.Context, msg Message) error
+	Handler func(ctx context.Context, msg Message) (any, error)
 
 	Client interface {
 		Publisher
 		Subscriber
+	}
+
+	QueueClient interface {
+		Publisher
+		QueueSubscriber
+	}
+
+	EventBus interface {
+		Publish(ctx context.Context, topic string, event interface{}) error
+		Subscribe(ctx context.Context, topic string, handler Handler) error
+		QueueSubscribe(ctx context.Context, topic string, group string, handler Handler) error
+		Close() error
 	}
 )

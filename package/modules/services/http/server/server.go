@@ -40,6 +40,10 @@ type HTTPServerParams struct {
 }
 
 func New(params HTTPServerParams) HTTPServer {
+	if !params.ServerConfig.Enabled {
+		return nil
+	}
+
 	// For better compatibility
 	app := createFiberApp(params.Logger)
 

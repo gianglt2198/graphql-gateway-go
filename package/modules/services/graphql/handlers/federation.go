@@ -1,4 +1,4 @@
-package federation
+package handlers
 
 import (
 	"bytes"

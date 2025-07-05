@@ -19,7 +19,9 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/handlers"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/utils"
 	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
 )
@@ -30,6 +32,7 @@ type graphqlServer struct {
 
 	log        *monitoring.Logger
 	httpServer httpServer.HTTPServer
+	subscriber pubsub.QueueSubscriber
 
 	exec *executor.Executor
 }
@@ -42,6 +45,7 @@ type ServerParams struct {
 
 	Logger     *monitoring.Logger
 	HTTPServer httpServer.HTTPServer
+	Subscriber pubsub.QueueSubscriber
 
 	ExecutableSchema graphql.ExecutableSchema
 }
@@ -80,12 +84,19 @@ func New(params ServerParams) common.GraphqlServer {
 		)))
 	}
 
+	if params.ServerConfig.Enabled {
+		if err := handlers.RegisterHandler(params.AppConfig, params.Subscriber, exec); err != nil {
+			params.Logger.Fatal("Failed to register graphql handler", zap.Error(err))
+		}
+	}
+
 	return &graphqlServer{
 		appConfig:    params.AppConfig,
 		serverConfig: params.ServerConfig,
 
 		log:        params.Logger,
 		httpServer: params.HTTPServer,
+		subscriber: params.Subscriber,
 
 		exec: exec,
 	}

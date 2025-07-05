@@ -12,12 +12,23 @@ database:
   password: "password"
   database: "account"
   ssl_mode: "disable"
+  debug: true
 
 metrics:
   enabled: false
   port: 9093
   path: "/metrics"
   namespace: "federation"
+
+# NATS Configuration
+nats:
+  enabled: true
+  name: "account"
+  endpoint: "nats://localhost:4223"
+  base_path: "federation"
+  allow_reconnect: true
+  max_reconnects: 500
+  ping_interval: 10s
 
 jwt:
   secret_key: "secret"
@@ -29,14 +40,14 @@ encrypt:
 # New servers configuration section
 servers:
   http:
-    enabled: true
+    enabled: false
     port: 8083
     read_timeout: 30
     write_timeout: 30
     idle_timeout: 120
   graphql:
     enabled: true
-    playground: true
+    playground: false
 
 service:
   expired_duration: 168

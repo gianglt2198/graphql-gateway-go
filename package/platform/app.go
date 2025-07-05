@@ -9,6 +9,8 @@ import (
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/helpers"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	psnats "github.com/gianglt2198/federation-go/package/infras/pubsub/nats"
+	"github.com/gianglt2198/federation-go/package/infras/serdes"
 	graphqlservice "github.com/gianglt2198/federation-go/package/modules/services/graphql"
 	httpservice "github.com/gianglt2198/federation-go/package/modules/services/http"
 )
@@ -51,14 +53,16 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Provide(helpers.NewJWTHelper),
 		// Provide encryptor
 		fx.Provide(helpers.NewAESCipher),
+		// Provide serializers for NATS
+		fx.Provide(serdes.NewMsgPack),
+		// HTTP server
+		httpservice.Module,
+		// NATS Server
+		psnats.Module,
 		// Logger configuration
 		fx.WithLogger(func(logger *monitoring.Logger) fxevent.Logger {
 			return logger.Fx()
 		}),
-	}
-
-	if cfg.Servers.HTTP.Enabled {
-		coreModules = append(coreModules, httpservice.Module)
 	}
 
 	if cfg.Servers.GraphQL.Enabled {

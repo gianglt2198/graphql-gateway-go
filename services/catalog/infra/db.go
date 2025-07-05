@@ -16,6 +16,12 @@ var dbModule = fx.Module("db",
 )
 
 func NewDB(cfg config.DatabaseConfig, logger *monitoring.Logger) *ent.Client {
-	rawdb := db.NewDB(cfg, logger)
-	return ent.NewClient(ent.Driver(sql.OpenDB(cfg.Driver, rawdb)), ent.Debug())
+	opts := []ent.Option{
+		ent.Driver(sql.OpenDB(cfg.Driver, db.NewDB(cfg, logger))),
+	}
+
+	if cfg.Debug {
+		opts = append(opts, ent.Debug())
+	}
+	return ent.NewClient(opts...)
 }

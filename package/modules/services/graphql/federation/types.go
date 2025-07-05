@@ -11,6 +11,8 @@ type ServiceConfig struct {
 	URL      string
 	WS       string
 	Fallback func(*ServiceConfig) (string, error)
+	Hash     uint64
+	SDL      string
 }
 
 type DatasourceConfig struct {

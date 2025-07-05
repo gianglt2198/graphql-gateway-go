@@ -2,7 +2,7 @@ app:
   name: "catalog"
   version: "0.1.0"
   environment: "development"
-  debug: true
+  debug: false
 
 database:
   driver: "postgres"
@@ -12,6 +12,17 @@ database:
   password: "password"
   database: "catalog"
   ssl_mode: "disable"
+  debug: true
+
+# NATS Configuration
+nats:
+  enabled: true
+  name: "catalog"
+  endpoint: "nats://localhost:4223"
+  base_path: "federation"
+  allow_reconnect: true
+  max_reconnects: 500
+  ping_interval: 10s
 
 metrics:
   enabled: false
@@ -22,11 +33,11 @@ metrics:
 # New servers configuration section
 servers:
   http:
-    enabled: true
+    enabled: false
     port: 8084
     read_timeout: 30
     write_timeout: 30
     idle_timeout: 120
   graphql:
     enabled: true
-    playground: true
+    playground: false

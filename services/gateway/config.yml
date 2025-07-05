@@ -11,6 +11,16 @@ metrics:
   namespace: "federation"
   subsystem: "gateway"
 
+# NATS Configuration
+nats:
+  enabled: true
+  name: "gateway"
+  endpoint: "nats://localhost:4223"
+  base_path: "federation"
+  allow_reconnect: true
+  max_reconnects: 500
+  ping_interval: 10s
+
 servers:
   http:
     enabled: true
@@ -24,17 +34,5 @@ servers:
     
     # Subgraph configurations
     subgraphs:
-      - name: account
-        url: http://localhost:8083/graphql
-        timeout: 30
-        retries: 3
-        headers:
-          Content-Type: application/json
-          Authorization: "${ACCOUNT_TOKEN:-}"
-      - name: catalog
-        url: http://localhost:8084/graphql
-        timeout: 30
-        retries: 3
-        headers:
-          Content-Type: application/json
-          Authorization: "${CATALOG_TOKEN:-}"
+      - name: account.graphql
+      - name: catalog.graphql
