@@ -4,8 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	fwebsocket "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/websocket"
 	"github.com/gorilla/websocket"
+
+	fwebsocket "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/websocket"
 )
 
 func NewWebSocketFederationMiddleware(ctx context.Context, opts fwebsocket.WebSocketFederationHandlerOptions) func(http.Handler) http.Handler {

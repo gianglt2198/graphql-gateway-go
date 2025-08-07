@@ -8,13 +8,6 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/package/infras/pubsub"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/handlers"
-	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
-	"github.com/gianglt2198/federation-go/package/modules/services/http/transports"
-	"github.com/gianglt2198/federation-go/package/utils"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/jensneuse/abstractlogger"
@@ -23,6 +16,14 @@ import (
 
 	"github.com/wundergraph/graphql-go-tools/execution/engine"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
+
+	"github.com/gianglt2198/federation-go/package/config"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/pubsub"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/handlers"
+	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
+	"github.com/gianglt2198/federation-go/package/modules/services/http/transports"
+	"github.com/gianglt2198/federation-go/package/utils"
 )
 
 // federationManager implements FederationManager

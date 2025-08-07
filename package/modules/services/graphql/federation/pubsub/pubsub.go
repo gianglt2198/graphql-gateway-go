@@ -6,12 +6,14 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	nodev1 "github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/node/v1"
 	"github.com/wundergraph/cosmo/router/pkg/config"
 	pubsub_datasource "github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 	"github.com/wundergraph/cosmo/router/pkg/pubsub/nats"
+
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
+
+	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 )
 
 type DataSourceConfigurationWithMetadata struct {

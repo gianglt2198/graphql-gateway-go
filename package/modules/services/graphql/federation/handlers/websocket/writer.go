@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
+
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
+
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/wsprotocol"
-	"github.com/tidwall/gjson"
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
-	"go.uber.org/zap"
 )
 
 type websocketResponseWriter struct {

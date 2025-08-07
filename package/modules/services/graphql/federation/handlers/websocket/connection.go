@@ -10,14 +10,16 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/wsprotocol"
 	"github.com/gobwas/ws/wsutil"
+	"go.uber.org/zap"
+
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
-	"go.uber.org/zap"
+
+	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/wsprotocol"
 )
 
 type SubscriptionRegistration struct {

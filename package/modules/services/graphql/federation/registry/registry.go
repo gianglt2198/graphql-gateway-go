@@ -10,14 +10,16 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/fx"
+	"go.uber.org/zap"
+
+	"github.com/wundergraph/cosmo/composition-go"
+
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	"github.com/gianglt2198/federation-go/package/utils"
-	"github.com/wundergraph/cosmo/composition-go"
-	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 type SchemaRegistry struct {

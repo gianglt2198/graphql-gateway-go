@@ -9,12 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gobwas/ws"
+	"go.uber.org/zap"
+
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
+
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/wsprotocol"
-	"github.com/gobwas/ws"
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
-	"go.uber.org/zap"
 )
 
 type WebSocketFederationHandlerOptions struct {

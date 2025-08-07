@@ -9,10 +9,11 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/executor"
+	"github.com/vektah/gqlparser/v2/gqlerror"
+
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/utils"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func RegisterHandler(

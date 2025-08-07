@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/wundergraph/graphql-go-tools/execution/graphql"
+
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
 	fwebsocket "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/websocket"
-	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 )
 
 const (

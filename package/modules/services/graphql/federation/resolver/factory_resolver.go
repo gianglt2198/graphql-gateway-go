@@ -5,13 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jensneuse/abstractlogger"
+
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/datasource/graphql_datasource"
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
+
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	"github.com/gianglt2198/federation-go/package/modules/services/http/transports"
-	"github.com/jensneuse/abstractlogger"
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/datasource/graphql_datasource"
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 )
 
 type DefaultFactoryResolver struct {
