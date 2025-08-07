@@ -58,3 +58,5 @@ node_modules/
 */**/**/generated
 
 */**/**/build
+
+.github

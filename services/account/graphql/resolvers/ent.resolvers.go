@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
-	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 )
 
 // Node is the resolver for the node field.
@@ -19,9 +18,4 @@ func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) 
 // Nodes is the resolver for the nodes field.
 func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, error) {
 	return r.db.Noders(ctx, ids)
-}
-
-// FindAuthVerifyEntityByID implements generated.EntityResolver.
-func (e *entityResolver) FindAuthVerifyEntityByID(ctx context.Context, id string) (*model.AuthVerifyEntity, error) {
-	return e.authService.FindAuthByID(ctx, id)
 }

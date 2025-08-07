@@ -1,8 +1,9 @@
-package federation
+package types
 
 import (
 	"time"
 
+	"github.com/wundergraph/cosmo/composition-go"
 	"github.com/wundergraph/graphql-go-tools/execution/engine"
 )
 
@@ -22,4 +23,13 @@ type DatasourceConfig struct {
 
 type DataSourceObserver interface {
 	UpdateDataSources(subgraphsConfigs []engine.SubgraphConfiguration)
+}
+
+type InstanceData struct {
+	HostName      string
+	ListenAddress string
+}
+
+type DataSourceObserverV2 interface {
+	UpdateDataSources(subgraphsConfigs []*composition.Subgraph)
 }

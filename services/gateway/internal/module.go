@@ -8,4 +8,5 @@ import (
 // Module provides all gateway components for dependency injection
 var Module = fx.Module("gateway",
 	fx.Provide(app.New),
+	fx.Invoke(app.Run),
 )

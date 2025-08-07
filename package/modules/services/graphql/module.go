@@ -9,6 +9,8 @@ import (
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/manager"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/registry"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/server"
 )
 
@@ -20,6 +22,16 @@ var Module = fx.Module("graphql-module",
 var FModule = fx.Module("federation-module",
 	fx.Provide(federation.NewSchemaRegistry),
 	fx.Provide(fx.Annotate(federation.New, fx.As(new(common.GraphqlServer)))),
+	fx.Invoke(RegisterGraphQLServer),
+)
+
+var FModuleV2 = fx.Module("federation-module-v2",
+	fx.Provide(registry.NewSchemaRegistry),
+	fx.Provide(manager.New,
+		fx.Annotate(
+			func(m manager.FederationManager) common.GraphqlServer { return m },
+			fx.As(new(common.GraphqlServer))),
+	),
 	fx.Invoke(RegisterGraphQLServer),
 )
 

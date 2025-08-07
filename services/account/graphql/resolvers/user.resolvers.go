@@ -9,8 +9,12 @@ import (
 	"github.com/gianglt2198/federation-go/services/account/generated/graph/model"
 )
 
+func (r *entityResolver) FindUserEntityByID(ctx context.Context, id string) (*model.UserEntity, error) {
+	return r.userService.FindUserByID(ctx, id)
+}
+
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.UserOrder, where *model.UserFilter) (*ent.UserConnection, error) {
+func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.UserOrder, where *model.UserFilter) (*model.UserPaginatedConnection, error) {
 	return r.userService.FindUsers(ctx, after, first, before, last, orderBy, where)
 }
 

@@ -2,14 +2,20 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/contrib/entgql"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
 )
 
+// FindProductEntityByID is the resolver for the findProductEntityByID field.
+func (r *entityResolver) FindProductEntityByID(ctx context.Context, id string) (*model.ProductEntity, error) {
+	panic(fmt.Errorf("not implemented: FindProductEntityByID - findProductEntityByID"))
+}
+
 // Products is the resolver for the products field.
-func (r *queryResolver) Products(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.ProductOrder, where *model.ProductFilter) (*ent.ProductConnection, error) {
+func (r *queryResolver) Products(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.ProductOrder, where *model.ProductFilter) (*model.ProductPaginatedConnection, error) {
 	return r.productService.FindProducts(ctx, after, first, before, last, orderBy, where)
 }
 

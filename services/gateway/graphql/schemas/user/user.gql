@@ -1,0 +1,8 @@
+type Subscription {
+  userUpdated(userID: ID!): UserEntity!
+    @edfs__natsSubscribe(subjects: ["userUpdated.{{ args.userID }}"])
+}
+
+extend type UserEntity @key(fields: "id", resolvable: false) {
+  id: ID! @external
+}

@@ -1,16 +1,27 @@
-type ProductConnection {
-  edges: [ProductEdge]
+type ProductPaginatedConnection {
+  edges: [ProductPaginatedEdge]
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type Product implements Node {
+type ProductPaginatedEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: ProductEntity
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+type ProductEntity implements Node @key(fields: "id") {
   id: ID!
-  createdAt: Time!
-  createdBy: String!
-  updatedAt: Time!
+  createdAt: Time
+  createdBy: String
+  updatedAt: Time
   updatedBy: String
-  name: String!
+  name: String
   description: String
   price: Float
   stock: Int
@@ -21,16 +32,5 @@ type Product implements Node {
     last: Int
     orderBy: [CategoryOrder!]
     filter: CategoryFilter
-  ): CategoryConnection!
-}
-
-type ProductEdge {
-  """
-  The item at the end of the edge.
-  """
-  node: Product
-  """
-  A cursor for use in pagination.
-  """
-  cursor: Cursor!
+  ): CategoryPaginatedConnection!
 }

@@ -1,39 +1,39 @@
 package app
 
 import (
-	"context"
-
 	"go.uber.org/fx"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/manager"
+	"github.com/gianglt2198/federation-go/services/gateway/graphql"
 )
 
 // App represents the gateway application
 type App struct {
-	logger *monitoring.Logger
+	FederationManager manager.FederationManager
 }
 
 // AppParams defines dependencies for the App
 type AppParams struct {
 	fx.In
 
-	Logger *monitoring.Logger
+	FederationManager manager.FederationManager
 }
 
 // New creates a new gateway application
 func New(params AppParams) *App {
+	f := graphql.GetAllSchemas()
+
+	// Initialize the federation manager
+	params.FederationManager.RegisterSchema(
+		"http://gateway.graphql",
+		"gateway",
+		string(f))
 	return &App{
-		logger: params.Logger,
+		FederationManager: params.FederationManager,
 	}
 }
 
-// Start initializes and starts the gateway application
-func (app *App) Start(ctx context.Context) error {
-	return nil
-}
-
-// Stop gracefully shuts down the gateway application
-func (app *App) Stop(ctx context.Context) error {
-	app.logger.Info("Shutting down Federation Gateway...")
+// Run starts the gateway application
+func Run(app *App) error {
 	return nil
 }

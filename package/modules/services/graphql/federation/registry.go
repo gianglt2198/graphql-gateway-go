@@ -13,6 +13,7 @@ import (
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	"github.com/gianglt2198/federation-go/package/utils"
 	"github.com/wundergraph/graphql-go-tools/execution/engine"
 	"go.uber.org/fx"
@@ -25,9 +26,10 @@ type SchemaRegistry struct {
 	brokerClient pubsub.Broker
 
 	config config.FederationConfig
-	sdlMap map[string]ServiceConfig
+	sdlMap map[string]types.ServiceConfig
 
-	updateDatasourceObservers []DataSourceObserver
+	updateDatasourceObservers []types.DataSourceObserver
+	mu                        sync.RWMutex
 }
 
 type SchemaRegistryParams struct {
@@ -64,7 +66,7 @@ func NewSchemaRegistry(params SchemaRegistryParams) *SchemaRegistry {
 		httpClient:   http.DefaultClient,
 		brokerClient: params.BrokerClient,
 		config:       params.Config,
-		sdlMap:       make(map[string]ServiceConfig),
+		sdlMap:       make(map[string]types.ServiceConfig),
 	}
 }
 
@@ -72,36 +74,42 @@ func (r *SchemaRegistry) Start(ctx context.Context) {
 	r.updateSDLs(ctx)
 }
 
-func (r *SchemaRegistry) Register(updateDatasourceObserver DataSourceObserver) {
+func (r *SchemaRegistry) Register(updateDatasourceObserver types.DataSourceObserver) {
 	r.updateDatasourceObservers = append(r.updateDatasourceObservers, updateDatasourceObserver)
 }
 
 func (r *SchemaRegistry) updateSDLs(ctx context.Context) {
-	r.sdlMap = make(map[string]ServiceConfig)
+	r.sdlMap = make(map[string]types.ServiceConfig)
+
+	// Convert config subgraphs to ServiceConfig
+	var serviceConfigs []types.ServiceConfig
+	for _, subgraph := range r.config.Subgraphs {
+		serviceConfigs = append(serviceConfigs, types.ServiceConfig{
+			Name: subgraph.Name,
+			URL:  subgraph.URL,
+		})
+	}
 
 	var wg sync.WaitGroup
-	resultCh := make(chan ServiceConfig)
+	resultCh := make(chan types.ServiceConfig)
 
-	for _, subgraph := range r.config.Subgraphs {
+	for _, serviceConfig := range serviceConfigs {
 		wg.Add(1)
-		go func() {
+		go func(sc types.ServiceConfig) {
 			defer wg.Done()
 			var (
 				sdl string
 				err error
 			)
-			if r.brokerClient != nil {
-				sdl, err = r.fetchSchemaSDL(ctx, subgraph.Name)
-				if err != nil {
-					r.logger.Error("Failed to get sdl.", zap.Error(err))
-					return
-				}
-			} else {
-				sdl, err = r.fetchSchemaSDLWithHTTP(ctx, subgraph.URL)
-				if err != nil {
-					r.logger.Error("Failed to get sdl.", zap.Error(err))
-					return
-				}
+
+			sdl, err = r.fetchSchemaFromService(ctx, sc.Name)
+			if err != nil {
+				r.logger.Error("Failed to fetch schema",
+					zap.String("service", sc.Name),
+					zap.String("url", sc.URL),
+					zap.Error(err),
+				)
+				return
 			}
 
 			if sdl == "" {
@@ -109,20 +117,15 @@ func (r *SchemaRegistry) updateSDLs(ctx context.Context) {
 			}
 
 			hash := utils.Hash(sdl)
-			if _, ok := r.sdlMap[subgraph.Name]; ok && r.sdlMap[subgraph.Name].Hash == hash {
+			if _, ok := r.sdlMap[sc.Name]; ok && r.sdlMap[sc.Name].Hash == hash {
 				return
 			}
 
-			select {
-			case <-ctx.Done():
-			case resultCh <- ServiceConfig{
-				Name: subgraph.Name,
-				URL:  fmt.Sprintf("http://%s", subgraph.Name),
-				SDL:  sdl,
-				Hash: hash,
-			}:
-			}
-		}()
+			sc.SDL = sdl
+			sc.Hash = utils.Hash(sdl)
+			resultCh <- sc
+
+		}(serviceConfig)
 	}
 
 	go func() {
@@ -130,13 +133,31 @@ func (r *SchemaRegistry) updateSDLs(ctx context.Context) {
 		close(resultCh)
 	}()
 
-	isChanged := false
+	// Collect results and check for changes
+	var updatedConfigs []types.ServiceConfig
+	hasChanges := false
 	for result := range resultCh {
+		r.mu.RLock()
+		existing, exists := r.sdlMap[result.Name]
+		r.mu.RUnlock()
+
+		if !exists || existing.Hash != result.Hash {
+			hasChanges = true
+			r.logger.Info("Schema updated",
+				zap.String("service", result.Name),
+				zap.Uint64("hash", result.Hash),
+			)
+		}
+
+		r.mu.Lock()
 		r.sdlMap[result.Name] = result
-		isChanged = true
+		r.mu.Unlock()
+
+		updatedConfigs = append(updatedConfigs, result)
 	}
 
-	if isChanged {
+	// Notify observers if there are changes
+	if hasChanges && len(updatedConfigs) > 0 {
 		r.updateObservers()
 	}
 }
@@ -156,7 +177,9 @@ func (r *SchemaRegistry) createSubgraphsConfig() []engine.SubgraphConfiguration 
 		subgraphConfig := engine.SubgraphConfiguration{
 			Name: subgraph.Name,
 			URL:  subgraph.URL,
-			SDL:  subgraph.SDL,
+			// SubscriptionUrl:      subgraph.WS,
+			// SubscriptionProtocol: engine.SubscriptionProtocolWS,
+			SDL: subgraph.SDL,
 		}
 
 		subgraphConfigs = append(subgraphConfigs, subgraphConfig)
@@ -209,4 +232,18 @@ func (r *SchemaRegistry) fetchSchemaSDL(ctx context.Context, url string) (string
 		return "", fmt.Errorf("response error: %v", result.Errors)
 	}
 	return result.Data.Service.SDL, nil
+}
+
+func (r *SchemaRegistry) fetchSchemaFromService(ctx context.Context, url string) (string, error) {
+	// Try NATS-based request first (for internal services)
+	if r.brokerClient != nil {
+		schema, err := r.fetchSchemaSDL(ctx, url)
+		if err == nil {
+			return schema, nil
+		}
+		r.logger.Debug("NATS fetch failed, trying HTTP", zap.Error(err))
+	}
+
+	// Fallback to HTTP request
+	return r.fetchSchemaSDLWithHTTP(ctx, url)
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/platform"
 	"github.com/gianglt2198/federation-go/services/gateway/config"
-	"github.com/gianglt2198/federation-go/services/gateway/infra"
+	"github.com/gianglt2198/federation-go/services/gateway/internal"
 	"go.uber.org/fx"
 )
 
@@ -18,7 +18,7 @@ func main() {
 
 	app := platform.NewApp(
 		cfg,
-		infra.Module,
+		internal.Module,
 	)
 
 	app.Run(fx.Hook{

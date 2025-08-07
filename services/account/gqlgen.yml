@@ -8,6 +8,7 @@ exec:
   filename: generated/graph/generated/generated.go
 
 federation:
+  version: 2
   package: generated
   filename: generated/graph/generated/federation.go
 
@@ -21,19 +22,17 @@ resolver:
   dir: generated/graph/resolvers
   filename_template: "{name}.resolvers.go"
 
+struct_tag: json
 struct_fields_always_pointers: true
 
 autobind:
   - github.com/99designs/gqlgen/graphql/introspection
-  - github.com/gianglt2198/federation-go/services/account/generated/ent 
+  - github.com/gianglt2198/federation-go/services/account/generated/ent
 
 models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.String
-  UUID:
-    model:
-      - github.com/99designs/gqlgen/graphql.UUID
   Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int

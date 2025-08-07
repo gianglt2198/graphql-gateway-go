@@ -10,6 +10,7 @@ import (
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/category"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/product"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
+	"github.com/gianglt2198/federation-go/services/catalog/internal/dtos"
 	"github.com/gianglt2198/federation-go/services/catalog/internal/repos"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
@@ -23,8 +24,8 @@ type (
 	}
 
 	CategoryService interface {
-		FindCategoryByID(ctx context.Context, id string) (*ent.Category, error)
-		FindCategories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *model.CategoryFilter) (*ent.CategoryConnection, error)
+		FindCategoryByID(ctx context.Context, id string) (*model.CategoryEntity, error)
+		FindCategories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *model.CategoryFilter) (*model.CategoryPaginatedConnection, error)
 
 		CreateCategory(ctx context.Context, product ent.CreateCategoryInput) (*ent.Category, error)
 		UpdateCategory(ctx context.Context, id string, product ent.UpdateCategoryInput) (*ent.Category, error)
@@ -55,11 +56,16 @@ func NewCategoryService(params CategoryServiceParams) CategoryServiceResult {
 	}
 }
 
-func (s *categoryService) FindCategoryByID(ctx context.Context, id string) (*ent.Category, error) {
-	return s.categoryRepository.FindOneWithPredicates(ctx, s.categoryRepository.Query(ctx), category.IDEQ(id))
+func (s *categoryService) FindCategoryByID(ctx context.Context, id string) (*model.CategoryEntity, error) {
+	category, err := s.categoryRepository.FindOneWithPredicates(ctx, s.categoryRepository.WithCollectFields(ctx), category.IDEQ(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return dtos.ToCategoryEntity(category)
 }
 
-func (s *categoryService) FindCategories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *model.CategoryFilter) (*ent.CategoryConnection, error) {
+func (s *categoryService) FindCategories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *model.CategoryFilter) (*model.CategoryPaginatedConnection, error) {
 	filter := func(q *ent.CategoryQuery) (*ent.CategoryQuery, error) {
 		if where != nil {
 			if len(where.Ids) > 0 {
@@ -80,7 +86,33 @@ func (s *categoryService) FindCategories(ctx context.Context, after *entgql.Curs
 		return nil, err
 	}
 
-	return categories, nil
+	categories.PageInfo = entgql.PageInfo[string]{
+		HasNextPage:     categories.PageInfo.HasNextPage,
+		HasPreviousPage: categories.PageInfo.HasPreviousPage,
+		StartCursor:     categories.PageInfo.StartCursor,
+		EndCursor:       categories.PageInfo.EndCursor,
+	}
+
+	list := make([]*model.CategoryPaginatedEdge, len(categories.Edges))
+	for i, edge := range categories.Edges {
+		category := edge.Node
+
+		categoryEntity, err := utils.ConvertTo[ent.Category, model.CategoryEntity](category)
+		if err != nil {
+			return nil, err
+		}
+
+		list[i] = &model.CategoryPaginatedEdge{
+			Cursor: edge.Cursor,
+			Node:   categoryEntity,
+		}
+	}
+
+	return &model.CategoryPaginatedConnection{
+		Edges:      list,
+		PageInfo:   lo.ToPtr(categories.PageInfo),
+		TotalCount: categories.TotalCount,
+	}, nil
 }
 
 func (s *categoryService) CreateCategory(ctx context.Context, category ent.CreateCategoryInput) (*ent.Category, error) {

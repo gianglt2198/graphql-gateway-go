@@ -13,8 +13,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 
-	pkgConfig "github.com/gianglt2198/federation-go/package/config"
-
 	"github.com/gianglt2198/federation-go/services/account/config"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent/migrate"
 )
@@ -239,17 +237,6 @@ func ensureMigrationDir() error {
 		return fmt.Errorf("failed to create migration directory: %w", err)
 	}
 	return nil
-}
-
-// getDevDatabaseURL constructs a development database URL for rollback operations
-func getDevDatabaseURL(cfg *pkgConfig.Config[config.AccountConfig]) string {
-	// Check for environment variable first
-	if devURL := os.Getenv("DEV_DATABASE_URL"); devURL != "" {
-		return devURL
-	}
-
-	// Fallback to a dev variant of the main database
-	return cfg.Database.GetURL() + "_dev"
 }
 
 // joinArgs joins command arguments for display

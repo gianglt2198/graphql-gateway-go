@@ -1,15 +1,28 @@
-directive @goField(forceResolver: Boolean, name: String, omittable: Boolean) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
-directive @goModel(model: String, models: [String!], forceGenerate: Boolean) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+directive @goField(
+  forceResolver: Boolean
+  name: String
+  omittable: Boolean
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @goModel(
+  model: String
+  models: [String!]
+  forceGenerate: Boolean
+) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 """
 Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+
+scalar Time
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
-interface Node @goModel(model: "github.com/gianglt2198/federation-go/services/account/generated/ent.Noder") {
+interface Node
+  @goModel(
+    model: "github.com/gianglt2198/federation-go/services/account/generated/ent.Noder"
+  ) {
   """
   The id of the object.
   """
@@ -70,7 +83,3 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 }
-"""
-The builtin Time type
-"""
-scalar Time

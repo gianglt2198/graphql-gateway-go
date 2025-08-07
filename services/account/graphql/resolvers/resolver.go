@@ -5,6 +5,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 	"github.com/gianglt2198/federation-go/services/account/generated/graph/generated"
@@ -17,6 +18,11 @@ type Resolver struct {
 
 	userService services.UserService
 	authService services.AuthService
+
+	// NATS clients for EDFS directives
+	natsClient     pubsub.Client
+	natsBroker     pubsub.Broker
+	natsSubscriber pubsub.QueueSubscriber
 }
 
 type ResolverParams struct {
@@ -27,17 +33,27 @@ type ResolverParams struct {
 
 	UserService services.UserService
 	AuthService services.AuthService
+
+	// NATS dependencies
+	NatsClient     pubsub.Client
+	NatsBroker     pubsub.Broker
+	NatsSubscriber pubsub.QueueSubscriber
 }
 
 func NewResolver(params ResolverParams) graphql.ExecutableSchema {
-	return generated.NewExecutableSchema(generated.Config{
-		Resolvers: &Resolver{
-			log: params.Log,
-			db:  params.Db,
+	r := &Resolver{
+		log: params.Log,
+		db:  params.Db,
 
-			userService: params.UserService,
-			authService: params.AuthService,
-		},
+		userService: params.UserService,
+		authService: params.AuthService,
+
+		natsClient:     params.NatsClient,
+		natsBroker:     params.NatsBroker,
+		natsSubscriber: params.NatsSubscriber,
+	}
+	return generated.NewExecutableSchema(generated.Config{
+		Resolvers: r,
 	})
 }
 
@@ -47,7 +63,7 @@ type (
 	mutationResolver struct{ *Resolver }
 )
 
-// func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
+func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 

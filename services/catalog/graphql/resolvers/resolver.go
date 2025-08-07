@@ -38,9 +38,13 @@ func NewResolver(params ResolverParams) graphql.ExecutableSchema {
 type (
 	queryResolver    struct{ *Resolver }
 	mutationResolver struct{ *Resolver }
+	entityResolver   struct{ *Resolver }
 )
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
+// Entity returns generated.EntityResolver implementation.
+func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }

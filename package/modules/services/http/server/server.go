@@ -2,12 +2,14 @@ package server
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gofiber/contrib/fiberzap/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -19,6 +21,8 @@ type httpServer struct {
 	log *monitoring.Logger
 
 	app *fiber.App
+
+	mux *http.ServeMux
 }
 
 type HTTPServer interface {
@@ -26,6 +30,7 @@ type HTTPServer interface {
 	Stop() error
 
 	GetApp() *fiber.App
+	Router() *http.ServeMux
 }
 
 type HttpServerStartHook fx.Hook
@@ -45,6 +50,7 @@ func New(params HTTPServerParams) HTTPServer {
 	}
 
 	// For better compatibility
+	mux := http.NewServeMux()
 	app := createFiberApp(params.Logger)
 
 	return &httpServer{
@@ -52,7 +58,9 @@ func New(params HTTPServerParams) HTTPServer {
 		serverConfig: params.ServerConfig,
 
 		log: params.Logger,
+
 		app: app,
+		mux: mux,
 	}
 }
 
@@ -77,10 +85,16 @@ func (h *httpServer) Start() error {
 	// Start listen http request
 	h.log.Info("HTTP server is listening on port", zap.Int("port", h.serverConfig.Port))
 
-	return h.app.Listen(fmt.Sprintf(":%d", h.serverConfig.Port))
+	h.mux.HandleFunc("/", adaptor.FiberApp(h.app))
+	var handler http.Handler = h.mux
+	return http.ListenAndServe(fmt.Sprintf(":%d", h.serverConfig.Port), handler)
 }
 
 func (h *httpServer) Stop() error {
 	h.log.Info("HTTP server shutting down...")
 	return h.app.Shutdown()
+}
+
+func (h *httpServer) Router() *http.ServeMux {
+	return h.mux
 }

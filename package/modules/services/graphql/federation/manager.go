@@ -46,6 +46,13 @@ type federationManager struct {
 	readyOnce *sync.Once
 }
 
+// FederationManager defines the interface for federation management
+type FederationManager interface {
+	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	UpdateDataSources(subgraphsConfigs []engine.SubgraphConfiguration)
+	Ready() <-chan struct{}
+}
+
 type FederationManagerParams struct {
 	fx.In
 
@@ -74,8 +81,8 @@ func New(params FederationManagerParams) *federationManager {
 	go f.registry.Start(context.Background())
 
 	if f.federationConfig.Playground {
-		var handlerFactory handlers.HandlerFactoryFn = func(engine *engine.ExecutionEngine) http.Handler {
-			return handlers.NewGraphqlHTTPHandler(engine)
+		var handlerFactory handlers.HandlerFactoryFn = func(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler {
+			return handlers.NewGraphqlHTTPHandler(logger, engine)
 		}
 
 		f.handlerFactory = handlerFactory
@@ -107,7 +114,17 @@ func (f *federationManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f.mu.Lock()
 	handler := f.handler
 	f.mu.Unlock()
+
+	if handler == nil {
+		http.Error(w, "Federation gateway not ready", http.StatusServiceUnavailable)
+		return
+	}
+
 	handler.ServeHTTP(w, r)
+}
+
+func (f *federationManager) Ready() <-chan struct{} {
+	return f.readyCh
 }
 
 func (f *federationManager) Start() error {
@@ -124,32 +141,39 @@ func (f *federationManager) Stop() error {
 
 func (f *federationManager) UpdateDataSources(subgraphsConfigs []engine.SubgraphConfiguration) {
 	if len(subgraphsConfigs) == 0 {
+		f.logger.Warn("No subgraph configurations provided")
 		return
 	}
 
 	ctx := context.Background()
 
-	var sb strings.Builder
-	for _, sub := range subgraphsConfigs {
-		sb.WriteString(sub.SDL)
+	// Calculate schema hash for change detection
+	var schemaBuilder strings.Builder
+	for _, config := range subgraphsConfigs {
+		schemaBuilder.WriteString(config.SDL)
 	}
-	sdlHashed := utils.Hash(sb.String())
+	sdlHashed := utils.Hash(schemaBuilder.String())
+
 	if f.hash == sdlHashed {
-		f.logger.Info("Schema is up-to-date!")
+		f.logger.Debug("Schema is up-to-date!")
 		return
 	}
-	if f.hash != 0 {
-		f.logger.Info("Updating new schema...")
-	}
-	for i, sub := range subgraphsConfigs {
-		subgraphsConfigs[i].SDL = sub.SDL
-	}
 
+	f.logger.Info("Updating federation schema",
+		zap.Int("subgraph_count", len(subgraphsConfigs)),
+		zap.Uint64("schema_hash", sdlHashed),
+	)
+
+	// Create HTTP client with custom transport for NATS support
 	transport := transports.NewNatsTransport(transports.NatsTransportParams{
 		Upstream: http.DefaultTransport.(*http.Transport),
 		Logger:   f.logger,
 		Broker:   f.broker,
 	})
+
+	for i, sub := range subgraphsConfigs {
+		subgraphsConfigs[i].SDL = f.extractSDL(sub.SDL)
+	}
 
 	client := &http.Client{
 		Timeout:   8 * time.Second,
@@ -160,12 +184,15 @@ func (f *federationManager) UpdateDataSources(subgraphsConfigs []engine.Subgraph
 		ctx,
 		subgraphsConfigs,
 		engine.WithFederationHttpClient(client),
+		engine.WithFederationSubscriptionType(engine.SubscriptionTypeGraphQLTransportWS),
 	)
+
 	engineConfig, err := engineConfigFactory.BuildEngineConfiguration()
 	if err != nil {
 		f.logger.Error("Failed to build engine config: %s", zap.Error(err))
 		return
 	}
+
 	executionEngine, err := engine.NewExecutionEngine(
 		ctx,
 		abstractlogger.NewZapLogger(
@@ -187,7 +214,7 @@ func (f *federationManager) UpdateDataSources(subgraphsConfigs []engine.Subgraph
 
 	f.mu.Lock()
 	if f.handlerFactory != nil {
-		f.handler = f.handlerFactory.Make(executionEngine)
+		f.handler = f.handlerFactory.Make(f.logger, executionEngine)
 	}
 	f.mu.Unlock()
 
@@ -197,4 +224,18 @@ func (f *federationManager) UpdateDataSources(subgraphsConfigs []engine.Subgraph
 		f.logger.Info("New schema updated!")
 	}
 	f.hash = sdlHashed
+}
+
+func (f *federationManager) extractSDL(subgraphSDL string) string {
+	// Extract the SDL from the subgraphSDL
+	// schema, err := gqlparser.LoadSchema(&ast.Source{Name: "subgraph", Input: subgraphSDL})
+	// if err != nil {
+	// 	return ""
+	// }
+
+	// for _, def := range schema.Directives {
+	// 	fmt.Println(def.Name)
+	// }
+
+	return subgraphSDL
 }

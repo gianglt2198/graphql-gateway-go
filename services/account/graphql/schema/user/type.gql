@@ -1,22 +1,22 @@
-type UserConnection {
-  edges: [UserEdge]
+type UserPaginatedConnection {
+  edges: [UserPaginatedEdge]
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type UserEdge {
-  node: User
+type UserPaginatedEdge {
+  node: UserEntity
   cursor: Cursor!
 }
 
-type User implements Node {
+type UserEntity implements Node @key(fields: "id") {
   id: ID!
-  createdAt: Time!
-  createdBy: String!
-  updatedAt: Time!
+  createdAt: Time
+  createdBy: String
+  updatedAt: Time
   updatedBy: String
-  username: String!
-  email: String!
+  username: String
+  email: String
   firstName: String
   lastName: String
   phone: String

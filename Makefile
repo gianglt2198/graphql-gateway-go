@@ -73,31 +73,6 @@ build: ## Build all services
 	done
 	@echo "$(GREEN)All services built successfully!$(NC)"
 
-# Testing
-test: ## Run all tests in each service
-	@echo "$(BLUE)Running tests...$(NC)"
-	@for service in $(SERVICES); do \
-		echo "$(YELLOW)Running tests for $$service...$(NC)"; \
-		cd services/$$service && go test -v ./... && cd ../..; \
-	done
-	@echo "$(GREEN)All tests passed!$(NC)"
-
-test-coverage: ## Run tests with coverage in each service
-	@echo "$(BLUE)Running tests with coverage...$(NC)"
-	@for service in $(SERVICES); do \
-		echo "$(YELLOW)Running tests with coverage for $$service...$(NC)"; \
-		cd services/$$service && go test -v -coverprofile=coverage.out ./... && cd ../..; \
-	done
-	@echo "$(GREEN)Coverage report generated: coverage.html$(NC)"
-
-test-integration: ## Run integration tests in each service
-	@echo "$(BLUE)Running integration tests...$(NC)"
-	@for service in $(SERVICES); do \
-		echo "$(YELLOW)Running integration tests for $$service...$(NC)"; \
-		cd services/$$service && go test -v -tags=integration ./... && cd ../..; \
-	done
-	@echo "$(GREEN)Integration tests completed!$(NC)"
-
 # Code quality
 lint: ## Run linter in each service
 	@echo "$(BLUE)Running linter...$(NC)"
@@ -148,41 +123,8 @@ run-gateway:
 	done
 	@echo "$(GREEN)All gateways started!$(NC)"
 
-# Docker operations
-docker-build: ## Build Docker images for all services
-	@echo "$(BLUE)Building Docker images...$(NC)"
-	@for service in $(SERVICES); do \
-		echo "$(YELLOW)Building $$service image...$(NC)"; \
-		docker build -f deployments/docker/Dockerfile.$$service -t $(DOCKER_REGISTRY)/$(PROJECT_NAME)-$$service:$(DOCKER_TAG) .; \
-	done
-	@echo "$(GREEN)All Docker images built!$(NC)"
-
-docker-push: docker-build ## Push Docker images to registry
-	@echo "$(BLUE)Pushing Docker images...$(NC)"
-	@for service in $(SERVICES); do \
-		echo "$(YELLOW)Pushing $$service image...$(NC)"; \
-		docker push $(DOCKER_REGISTRY)/$(PROJECT_NAME)-$$service:$(DOCKER_TAG); \
-	done
-	@echo "$(GREEN)All Docker images pushed!$(NC)"
-
-docker-run: ## Run services using Docker Compose
-	@echo "$(BLUE)Starting services with Docker Compose...$(NC)"
-	@docker-compose -f deployments/docker/docker-compose.yml up -d
-	@echo "$(GREEN)Services started with Docker Compose!$(NC)"
-
-# Infrastructure management
-infra-up: ## Start infrastructure services (NATS, etcd, PostgreSQL, Redis)
-	@echo "$(BLUE)Starting infrastructure services...$(NC)"
-	@docker-compose -f deployments/docker/docker-compose.infra.yml up -d
-	@echo "$(GREEN)Infrastructure services started!$(NC)"
-
-infra-down: ## Stop infrastructure services
-	@echo "$(YELLOW)Stopping infrastructure services...$(NC)"
-	@docker-compose -f deployments/docker/docker-compose.infra.yml down
-	@echo "$(GREEN)Infrastructure services stopped!$(NC)"
-
 # Code generation
-graphql-gen: ## Generate GraphQL code
+generate: ## Generate GraphQL code
 	@echo "$(BLUE)Generating GraphQL code...$(NC)"
 	@for service in $(SERVICES); do \
 		if [ -f "services/$$service/gqlgen.yml" ]; then \
@@ -191,16 +133,6 @@ graphql-gen: ## Generate GraphQL code
 		fi; \
 	done
 	@echo "$(GREEN)GraphQL code generated!$(NC)"
-
-# Security and analysis
-security-scan: ## Run security scan in each service
-	@echo "$(BLUE)Running security scan...$(NC)"
-	@go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
-	@for service in $(SERVICES); do \
-		echo "$(YELLOW)Running security scan for $$service...$(NC)"; \
-		cd services/$$service && gosec ./... && cd ../..; \
-	done
-	@echo "$(GREEN)Security scan completed!$(NC)"
 
 # Quick development cycle
 dev: clean build test ## Quick development cycle: clean, build, test

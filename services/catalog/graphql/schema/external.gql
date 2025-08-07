@@ -1,0 +1,3 @@
+extend type UserEntity @key(fields: "id") {
+  id: ID! @external
+}

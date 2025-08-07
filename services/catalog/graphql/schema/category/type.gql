@@ -1,16 +1,23 @@
-type CategoryConnection {
-  edges: [CategoryEdge]
+type CategoryPaginatedConnection {
+  edges: [CategoryPaginatedEdge]
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type Category implements Node {
+type CategoryPaginatedEdge {
+  node: CategoryEntity
+  cursor: Cursor!
+}
+
+type CategoryEntity implements Node @key(fields: "id") {
   id: ID!
-  createdAt: Time!
-  createdBy: String!
-  updatedAt: Time!
+  createdAt: Time
+  createdBy: String
+  userCreatedBy: UserEntity
+  updatedAt: Time
   updatedBy: String
-  name: String!
+  userUpdatedBy: UserEntity
+  name: String
   description: String
   products(
     after: Cursor
@@ -19,16 +26,5 @@ type Category implements Node {
     last: Int
     orderBy: [ProductOrder!]
     filter: ProductFilter
-  ): ProductConnection!
-}
-
-type CategoryEdge {
-  """
-  The item at the end of the edge.
-  """
-  node: Category
-  """
-  A cursor for use in pagination.
-  """
-  cursor: Cursor!
+  ): ProductPaginatedConnection!
 }

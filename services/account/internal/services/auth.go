@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/samber/lo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +13,6 @@ import (
 	"github.com/gianglt2198/federation-go/package/helpers"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/utils"
-	"github.com/samber/lo"
 
 	"github.com/gianglt2198/federation-go/services/account/config"
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"

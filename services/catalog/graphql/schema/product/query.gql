@@ -6,5 +6,5 @@ extend type Query {
     last: Int
     orderBy: [ProductOrder!]
     where: ProductFilter
-  ): ProductConnection!
+  ): ProductPaginatedConnection!
 }

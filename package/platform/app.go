@@ -55,22 +55,21 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Provide(helpers.NewAESCipher),
 		// Provide serializers for NATS
 		fx.Provide(serdes.NewMsgPack),
-		// HTTP server
-		httpservice.Module,
-		// NATS Server
-		psnats.Module,
 		// Logger configuration
 		fx.WithLogger(func(logger *monitoring.Logger) fxevent.Logger {
 			return logger.Fx()
 		}),
 	}
 
+	coreModules = append(coreModules, psnats.Module)
+	coreModules = append(coreModules, httpservice.Module)
+
 	if cfg.Servers.GraphQL.Enabled {
 		coreModules = append(coreModules, graphqlservice.Module)
 	}
 
 	if cfg.Servers.Federation.Enabled {
-		coreModules = append(coreModules, graphqlservice.FModule)
+		coreModules = append(coreModules, graphqlservice.FModuleV2)
 	}
 
 	// Combine core modules with provided modules

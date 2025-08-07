@@ -17,13 +17,13 @@ func main() {
 	ex, err := entgql.NewExtension(
 		entgql.WithSchemaGenerator(),
 		entgql.WithConfigPath("./gqlgen.yml"),
-		entgql.WithSchemaPath("./graphql/schema/definition.gql"),
+		// entgql.WithSchemaPath("./graphql/schema/definition.gql"),
 		entgql.WithRelaySpec(true),
 		entgql.WithSchemaHook(federation.RemoveNodeQueries,
 			federation.RemoveMutationInput,
 			federation.RemoveEntitiesImplementingNode,
 			federation.RemoveEntitiesImplementingOrder,
-			federation.RemoveEntitiesImplementingConnection,
+			// federation.RemoveEntitiesImplementingConnection,
 		),
 	)
 	if err != nil {
@@ -35,7 +35,6 @@ func main() {
 	}
 
 	templates := entgql.AllTemplates
-	templates = append(templates, db.PNNIDTemplate)
 
 	if err := entc.Generate("./ent/schema", &gen.Config{
 		Target:    "./generated/ent",
