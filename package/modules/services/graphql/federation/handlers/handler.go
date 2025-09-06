@@ -2,9 +2,11 @@ package fhandlers
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"time"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
@@ -33,12 +35,23 @@ func NewFederationHandler(log *monitoring.Logger, executor *executor.Executor) *
 }
 
 func (h *FederationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h.isWebsocketUpgrade(r) {
-		h.handleWebSocketUpgrade(w, r)
-		return
-	}
+	// if h.isWebsocketUpgrade(r) {
+	// 	h.handleWebSocketUpgrade(w, r)
+	// 	return
+	// }
 
 	h.handleRequest(w, r)
+}
+
+func (h *FederationHandler) ServeWS(c *websocket.Conn) {
+	h.wsHandler = fwebsocket.NewWebSocketFederationHandler(context.Background(), fwebsocket.WebSocketFederationHandlerOptions{
+		Logger:       h.log,
+		Executor:     h.executor,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	})
+
+	h.wsHandler.HandleWSUpgradeRequest(c)
 }
 
 func (h *FederationHandler) handleRequest(w http.ResponseWriter, r *http.Request) {
@@ -64,22 +77,22 @@ func (h *FederationHandler) handleRequest(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (h *FederationHandler) handleWebSocketUpgrade(w http.ResponseWriter, r *http.Request) {
-	h.wsHandler = fwebsocket.NewWebSocketFederationHandler(r.Context(), fwebsocket.WebSocketFederationHandlerOptions{
-		Logger:       h.log,
-		Executor:     h.executor,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
-	})
+// func (h *FederationHandler) handleWebSocketUpgrade(w http.ResponseWriter, r *http.Request) {
+// 	h.wsHandler = fwebsocket.NewWebSocketFederationHandler(r.Context(), fwebsocket.WebSocketFederationHandlerOptions{
+// 		Logger:       h.log,
+// 		Executor:     h.executor,
+// 		ReadTimeout:  30 * time.Second,
+// 		WriteTimeout: 30 * time.Second,
+// 	})
 
-	h.wsHandler.HandleUpgradeRequest(w, r)
-}
+// 	h.wsHandler.HandleUpgradeRequest(w, r)
+// }
 
-func (g *FederationHandler) isWebsocketUpgrade(r *http.Request) bool {
-	for _, header := range r.Header[httpHeaderUpgrade] {
-		if header == "websocket" {
-			return true
-		}
-	}
-	return false
-}
+// func (g *FederationHandler) isWebsocketUpgrade(r *http.Request) bool {
+// 	for _, header := range r.Header[httpHeaderUpgrade] {
+// 		if header == "websocket" {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

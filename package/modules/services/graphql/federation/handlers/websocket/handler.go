@@ -4,19 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
-	"net/http"
 	"sync"
 	"time"
 
-	"github.com/gobwas/ws"
 	"go.uber.org/zap"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/wsprotocol"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/wsprotocol"
 )
 
 type WebSocketFederationHandlerOptions struct {
@@ -46,7 +44,7 @@ type WebSocketFederationHandler struct {
 
 func NewWebSocketFederationHandler(ctx context.Context, opts WebSocketFederationHandlerOptions) *WebSocketFederationHandler {
 	handler := &WebSocketFederationHandler{
-		ctx:      context.Background(),
+		ctx:      ctx,
 		logger:   opts.Logger,
 		executor: opts.Executor,
 
@@ -68,27 +66,66 @@ func NewWebSocketFederationHandler(ctx context.Context, opts WebSocketFederation
 	return handler
 }
 
-func (h *WebSocketFederationHandler) HandleUpgradeRequest(w http.ResponseWriter, r *http.Request) {
-	var subProtocol string
-	upgrader := ws.HTTPUpgrader{
-		Timeout: time.Second * 5,
-		Protocol: func(s string) bool {
-			if wsprotocol.IsSupportedSubprotocol(s) {
-				subProtocol = s
-				return true
-			}
-			return false
-		},
-	}
+// func (h *WebSocketFederationHandler) HandleUpgradeRequest(w http.ResponseWriter, r *http.Request) {
+// 	var subProtocol string
+// 	upgrader := ws.HTTPUpgrader{
+// 		Timeout: time.Second * 5,
+// 		Protocol: func(s string) bool {
+// 			if wsprotocol.IsSupportedSubprotocol(s) {
+// 				subProtocol = s
+// 				return true
+// 			}
+// 			return false
+// 		},
+// 	}
 
-	c, _, _, err := upgrader.Upgrade(r, w)
-	if err != nil {
-		_ = c.Close()
-		return
-	}
+// 	c, _, _, err := upgrader.Upgrade(r, w)
+// 	if err != nil {
+// 		_ = c.Close()
+// 		return
+// 	}
 
+// 	conn := newWSConnectionWrapper(c, h.readTimeout, h.writeTimeout)
+// 	protocol, err := wsprotocol.NewProtocol(subProtocol, conn)
+// 	if err != nil {
+// 		_ = c.Close()
+// 		return
+// 	}
+
+// 	handler := NewWebSocketConnectionHandler(h.ctx, WebSocketConnectionHandlerOptions{
+// 		Logger:   h.logger,
+// 		Executor: h.executor,
+
+// 		Request:        r,
+// 		ResponseWriter: w,
+
+// 		Protocol:   protocol,
+// 		Connection: conn,
+// 	})
+
+// 	err = handler.Initialize()
+// 	if err != nil {
+// 		h.logger.Error("Failed to initialize WebSocket connection handler", zap.Error(err))
+// 		handler.Close(false)
+// 		return
+// 	}
+
+// 	if h.netPoll != nil {
+// 		err = h.addConnection(c, handler)
+// 		if err != nil {
+// 			handler.Close(true)
+// 		}
+// 		return
+// 	}
+
+// 	// Handle messages sync when net poller implementation is not available
+
+// 	go h.handleConnectionSync(handler)
+// }
+
+func (h *WebSocketFederationHandler) HandleWSUpgradeRequest(c *websocket.Conn) {
 	conn := newWSConnectionWrapper(c, h.readTimeout, h.writeTimeout)
-	protocol, err := wsprotocol.NewProtocol(subProtocol, conn)
+	protocol, err := wsprotocol.NewProtocol(c.Subprotocol(), conn)
 	if err != nil {
 		_ = c.Close()
 		return
@@ -97,9 +134,6 @@ func (h *WebSocketFederationHandler) HandleUpgradeRequest(w http.ResponseWriter,
 	handler := NewWebSocketConnectionHandler(h.ctx, WebSocketConnectionHandlerOptions{
 		Logger:   h.logger,
 		Executor: h.executor,
-
-		Request:        r,
-		ResponseWriter: w,
 
 		Protocol:   protocol,
 		Connection: conn,
@@ -112,17 +146,16 @@ func (h *WebSocketFederationHandler) HandleUpgradeRequest(w http.ResponseWriter,
 		return
 	}
 
-	if h.netPoll != nil {
-		err = h.addConnection(c, handler)
-		if err != nil {
-			handler.Close(true)
-		}
-		return
-	}
+	// if h.netPoll != nil {
+	// 	err = h.addConnection(c, handler)
+	// 	if err != nil {
+	// 		handler.Close(true)
+	// 	}
+	// 	return
+	// }
 
 	// Handle messages sync when net poller implementation is not available
-
-	go h.handleConnectionSync(handler)
+	h.handleConnectionSync(handler)
 }
 
 func (h *WebSocketFederationHandler) handleConnectionSync(handler *WebSocketConnectionHandler) {
@@ -178,84 +211,4 @@ func (h *WebSocketFederationHandler) HandleMessage(handler *WebSocketConnectionH
 		return handler.requestError(fmt.Errorf("unsupported message type %d", msg.Type))
 	}
 	return nil
-}
-
-func (h *WebSocketFederationHandler) addConnection(conn net.Conn, handler *WebSocketConnectionHandler) error {
-	h.connectionsMu.Lock()
-	defer h.connectionsMu.Unlock()
-	fd := socketFd(conn)
-	if fd == 0 {
-		return fmt.Errorf("unable to get socket fd for conn: %d", handler.connectionID)
-	}
-	h.connections[fd] = handler
-	return h.netPoll.Add(conn)
-}
-
-func (h *WebSocketFederationHandler) removeConnection(conn net.Conn, handler *WebSocketConnectionHandler, fd int) {
-	h.connectionsMu.Lock()
-	delete(h.connections, fd)
-	h.connectionsMu.Unlock()
-	err := h.netPoll.Remove(conn)
-	if err != nil {
-		h.logger.Warn("Removing connection from net poller", zap.Error(err))
-	}
-	handler.Close(true)
-}
-
-func (h *WebSocketFederationHandler) runPoller() {
-	done := h.ctx.Done()
-	defer func() {
-		h.connectionsMu.Lock()
-		_ = h.netPoll.Close(true)
-		h.connectionsMu.Unlock()
-	}()
-	for {
-		select {
-		case <-done:
-			return
-		default:
-			connections, err := h.netPoll.Wait(128)
-			if err != nil {
-				h.logger.Warn("Net Poller wait", zap.Error(err))
-				continue
-			}
-			for i := range len(connections) {
-				if connections[i] == nil {
-					continue
-				}
-				conn := connections[i].(netpoll.ConnImpl)
-				// check if the connection is still valid
-				fd := socketFd(conn)
-				h.connectionsMu.RLock()
-				handler, exists := h.connections[fd]
-				h.connectionsMu.RUnlock()
-
-				if !exists {
-					h.logger.Debug("Connection not found", zap.Int("fd", fd))
-					continue
-				}
-
-				if fd == 0 {
-					h.logger.Debug("Invalid socket fd", zap.Int("fd", fd))
-					h.removeConnection(conn, handler, fd)
-					continue
-				}
-
-				msg, err := handler.protocol.ReadMessage()
-				if err != nil {
-					h.logger.Debug("Client closed connection", zap.Error(err))
-					h.removeConnection(conn, handler, fd)
-					continue
-				}
-				err = h.HandleMessage(handler, msg)
-				if err != nil {
-					h.logger.Debug("Handling websocket message", zap.Error(err))
-					if errors.Is(err, errClientTerminatedConnection) {
-						h.removeConnection(conn, handler, fd)
-						continue
-					}
-				}
-			}
-		}
-	}
 }

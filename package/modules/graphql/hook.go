@@ -1,4 +1,4 @@
-package federation
+package graphql
 
 import (
 	"errors"

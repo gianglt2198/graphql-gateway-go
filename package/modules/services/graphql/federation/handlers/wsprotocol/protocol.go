@@ -63,6 +63,8 @@ func NewProtocol(subProtocol string, conn ProtocolConn) (Protocol, error) {
 	switch subProtocol {
 	case SubscriptionsTransportWSSubprotocol:
 		return newSubscriptionsTransportWSProtocol(conn), nil
+	case SubscriptionsGraphQLWSSubprotocol:
+		return newGraphQLWSProtocol(conn), nil
 	}
 	return nil, fmt.Errorf("could not find a suitable websocket subprotocol, supported ones are: %s", strings.Join(Subprotocols(), ", "))
 }

@@ -19,13 +19,12 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/wsprotocol"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/wsprotocol"
 )
 
 type SubscriptionRegistration struct {
-	id            resolve.SubscriptionIdentifier
-	msg           *wsprotocol.Message
-	clientRequest *http.Request
+	id  resolve.SubscriptionIdentifier
+	msg *wsprotocol.Message
 }
 
 type WebSocketConnectionHandlerOptions struct {
@@ -47,11 +46,6 @@ type WebSocketConnectionHandler struct {
 	logger   *monitoring.Logger
 	executor *executor.Executor
 
-	// request is the original client request. It is not safe for concurrent use.
-	// You have to clone it before using it in a goroutine.
-	request *http.Request
-	writer  http.ResponseWriter
-
 	conn     *wsConnectionWrapper
 	protocol wsprotocol.Protocol
 
@@ -69,9 +63,6 @@ func NewWebSocketConnectionHandler(ctx context.Context, opts WebSocketConnection
 
 		logger:   opts.Logger,
 		executor: opts.Executor,
-
-		request: opts.Request,
-		writer:  opts.ResponseWriter,
 
 		conn:     opts.Connection,
 		protocol: opts.Protocol,
@@ -162,7 +153,7 @@ func (h *WebSocketConnectionHandler) registerSubscription(msg *wsprotocol.Messag
 		// executeSubscription is running on a worker pool, so we have to clone the request
 		// before passing it to the worker pool. The original request is not safe for concurrent use and
 		// is needed later to construct the operation context and to clone the resolver context.
-		clientRequest: h.request.Clone(h.request.Context()),
+		// clientRequest: h.request.Clone(h.request.Context()),
 	}
 
 	return registration, nil

@@ -2,17 +2,16 @@ package manager
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/wundergraph/cosmo/composition-go"
@@ -42,7 +41,7 @@ type federationManager struct {
 	logger *monitoring.Logger
 	mu     sync.RWMutex
 
-	handler    http.Handler
+	handler    types.FederationHandler
 	httpServer httpServer.HTTPServer
 	registry   *registry.SchemaRegistry
 	broker     pubsub.Broker
@@ -98,6 +97,20 @@ func New(params FederationManagerParams) FederationManager {
 			app.Use(pprof.New())
 		}
 
+		app.Use("/ws", func(c *fiber.Ctx) error {
+			// IsWebSocketUpgrade returns true if the client
+			// requested upgrade to the WebSocket protocol.
+			if !websocket.IsWebSocketUpgrade(c) {
+				return fiber.ErrUpgradeRequired
+			}
+			c.Locals("allowed", true)
+			return c.Next()
+		})
+
+		app.Get("/ws", websocket.New(f.ServeWS, websocket.Config{
+			Subprotocols: []string{"graphql-transport-ws", "graphql-ws"},
+		}))
+
 		app.All("/graphql", adaptor.HTTPHandler(f))
 		app.Get(
 			"/playground",
@@ -109,8 +122,6 @@ func New(params FederationManagerParams) FederationManager {
 				playground.WithApolloSandboxInitialStatePollForSchemaUpdates(true),
 			)),
 		)
-
-		f.httpServer.Router().Handle("/graphql", f)
 	}
 
 	return f
@@ -129,6 +140,15 @@ func (f *federationManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f.handler.ServeHTTP(w, r)
+}
+
+func (f *federationManager) ServeWS(c *websocket.Conn) {
+	if f.handler == nil {
+		// http.Error(, "Federation gateway not ready", http.StatusServiceUnavailable)
+		_ = c.WriteMessage(websocket.CloseMessage, []byte("Federation gateway not ready"))
+		return
+	}
+	f.handler.ServeWS(c)
 }
 
 func (f *federationManager) Ready() <-chan struct{} {
@@ -233,51 +253,4 @@ func (f *federationManager) UpdateDataSources(subgraphsConfigs []*composition.Su
 	f.mu.Unlock()
 
 	f.readyCh <- struct{}{}
-}
-
-func (f *federationManager) startupProviders(ctx context.Context) error {
-	const defaultStartupTimeout = 5 * time.Second
-
-	return f.providersActionWithTimeout(ctx, func(ctx context.Context, provider datasource.Provider) error {
-		return provider.Startup(ctx)
-	}, defaultStartupTimeout, "pubsub provider startup timed out")
-}
-
-func (f *federationManager) shutdownProviders(ctx context.Context) error {
-	const defaultShutdownTimeout = 5 * time.Second
-
-	return f.providersActionWithTimeout(ctx, func(ctx context.Context, provider datasource.Provider) error {
-		return provider.Shutdown(ctx)
-	}, defaultShutdownTimeout, "pubsub provider shutdown timed out")
-}
-
-func (f *federationManager) providersActionWithTimeout(
-	ctx context.Context,
-	action func(ctx context.Context, provider datasource.Provider) error,
-	timeout time.Duration,
-	errorMessage string,
-) error {
-	cancellableCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
-	providersGroup := new(errgroup.Group)
-	for _, provider := range f.pubsubProviders {
-		providersGroup.Go(func() error {
-			actionDone := make(chan error, 1)
-			go func() {
-				actionDone <- action(cancellableCtx, provider)
-			}()
-			select {
-			case err := <-actionDone:
-				return err
-			case <-timer.C:
-				return errors.New(errorMessage)
-			}
-		})
-	}
-
-	return providersGroup.Wait()
 }

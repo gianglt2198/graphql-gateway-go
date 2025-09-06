@@ -18,7 +18,8 @@ import (
 
 // Redis represents a Redis client with monitoring
 type Redis struct {
-	config config.RedisConfig
+	config    config.RedisConfig
+	appConfig config.AppConfig
 
 	client  *redis.Client
 	logger  *monitoring.Logger
@@ -28,9 +29,10 @@ type Redis struct {
 type RedisParams struct {
 	fx.In
 
-	Config  config.RedisConfig
-	Logger  *monitoring.Logger
-	Metrics *monitoring.Metrics
+	AppConfig config.AppConfig
+	Config    config.RedisConfig
+	Logger    *monitoring.Logger
+	Metrics   *monitoring.Metrics
 }
 
 type RedisResult struct {
@@ -41,13 +43,15 @@ type RedisResult struct {
 
 // NewRedis creates a new Redis client
 func NewRedis(params RedisParams) RedisResult {
-	r := connect(params.Config, params.Logger, params.Metrics)
+	r := connect(params.AppConfig, params.Config, params.Logger, params.Metrics)
 	return RedisResult{
 		Redis: r,
 	}
 }
 
-func connect(redisConfig config.RedisConfig,
+func connect(
+	appConfig config.AppConfig,
+	redisConfig config.RedisConfig,
 	logger *monitoring.Logger,
 	metrics *monitoring.Metrics) *Redis {
 	// Create Redis client
@@ -74,7 +78,8 @@ func connect(redisConfig config.RedisConfig,
 	}
 
 	r := &Redis{
-		config: redisConfig,
+		appConfig: appConfig,
+		config:    redisConfig,
 
 		client:  client,
 		logger:  logger,
@@ -114,11 +119,11 @@ func (r *Redis) Get(ctx context.Context, key string) ([]byte, error) {
 
 	if r.metrics != nil {
 		if result.Err() == redis.Nil {
-			r.metrics.RecordCacheMiss("redis", "string", key)
+			r.metrics.RecordCacheMiss(r.appConfig.Name, "string", key)
 		} else if result.Err() == nil {
-			r.metrics.RecordCacheHit("redis", "string", key)
+			r.metrics.RecordCacheHit(r.appConfig.Name, "string", key)
 		}
-		r.metrics.RecordCacheOperation("redis", "string", "get")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "get")
 	}
 
 	if result.Err() == redis.Nil {
@@ -146,7 +151,7 @@ func (r *Redis) Set(ctx context.Context, key string, value []byte, expiration ti
 	result := r.client.Set(ctx, key, value, expiration)
 
 	if r.metrics != nil {
-		r.metrics.RecordCacheOperation("redis", "string", "set")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "set")
 	}
 
 	if r.logger != nil && result.Err() != nil {
@@ -171,7 +176,7 @@ func (r *Redis) Del(ctx context.Context, keys ...string) error {
 	result := r.client.Del(ctx, keys...)
 
 	if r.metrics != nil {
-		r.metrics.RecordCacheOperation("redis", "string", "del")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "del")
 	}
 
 	if r.logger != nil && result.Err() != nil {
@@ -197,7 +202,7 @@ func (r *Redis) ExistsMultiple(ctx context.Context, keys ...string) (int64, erro
 	result := r.client.Exists(ctx, keys...)
 
 	if r.metrics != nil {
-		r.metrics.RecordCacheOperation("redis", "string", "exists")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "exists")
 	}
 
 	if r.logger != nil && result.Err() != nil {
@@ -218,11 +223,11 @@ func (r *Redis) HGet(ctx context.Context, key, field string) (string, error) {
 
 	if r.metrics != nil {
 		if result.Err() == redis.Nil {
-			r.metrics.RecordCacheMiss("redis", "hash", key)
+			r.metrics.RecordCacheMiss(r.appConfig.Name, "hash", key)
 		} else if result.Err() == nil {
-			r.metrics.RecordCacheHit("redis", "hash", key)
+			r.metrics.RecordCacheHit(r.appConfig.Name, "hash", key)
 		}
-		r.metrics.RecordCacheOperation("redis", "hash", "hget")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "hash", "hget")
 	}
 
 	if result.Err() == redis.Nil {
@@ -247,7 +252,7 @@ func (r *Redis) HSet(ctx context.Context, key string, values ...interface{}) err
 	result := r.client.HSet(ctx, key, values...)
 
 	if r.metrics != nil {
-		r.metrics.RecordCacheOperation("redis", "hash", "hset")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "hash", "hset")
 	}
 
 	if r.logger != nil && result.Err() != nil {
@@ -267,7 +272,7 @@ func (r *Redis) HDel(ctx context.Context, key string, fields ...string) error {
 	result := r.client.HDel(ctx, key, fields...)
 
 	if r.metrics != nil {
-		r.metrics.RecordCacheOperation("redis", "hash", "hdel")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "hash", "hdel")
 	}
 
 	if r.logger != nil && result.Err() != nil {
@@ -288,7 +293,7 @@ func (r *Redis) Expire(ctx context.Context, key string, expiration time.Duration
 	result := r.client.Expire(ctx, key, expiration)
 
 	if r.metrics != nil {
-		r.metrics.RecordCacheOperation("redis", "string", "expire")
+		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "expire")
 	}
 
 	if r.logger != nil && result.Err() != nil {

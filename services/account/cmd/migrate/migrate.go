@@ -169,6 +169,10 @@ func applyMigrations() error {
 		return err
 	}
 
+	if err := regenerateMigrationHashes(); err != nil {
+		return err
+	}
+
 	return runAtlasCommand("apply",
 		"--dir", "file://"+migrationDir,
 		"--url", cfg.Database.GetURL(),
@@ -178,6 +182,10 @@ func applyMigrations() error {
 // createNewMigration creates an empty migration file
 func createNewMigration(name string) error {
 	if err := ensureMigrationDir(); err != nil {
+		return err
+	}
+
+	if err := regenerateMigrationHashes(); err != nil {
 		return err
 	}
 

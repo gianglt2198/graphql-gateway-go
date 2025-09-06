@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"entgo.io/contrib/entgql"
@@ -10,20 +11,20 @@ import (
 	"entgo.io/ent/entc/gen"
 
 	"github.com/gianglt2198/federation-go/package/modules/db"
-	"github.com/gianglt2198/federation-go/services/account/cmd/ent/federation"
+	"github.com/gianglt2198/federation-go/package/modules/graphql"
+	"github.com/gianglt2198/federation-go/package/utils"
 )
 
 func main() {
 	ex, err := entgql.NewExtension(
 		entgql.WithSchemaGenerator(),
 		entgql.WithConfigPath("./gqlgen.yml"),
-		// entgql.WithSchemaPath("./graphql/schema/definition.gql"),
 		entgql.WithRelaySpec(true),
-		entgql.WithSchemaHook(federation.RemoveNodeQueries,
-			federation.RemoveMutationInput,
-			federation.RemoveEntitiesImplementingNode,
-			federation.RemoveEntitiesImplementingOrder,
-			// federation.RemoveEntitiesImplementingConnection,
+		entgql.WithSchemaHook(graphql.RemoveNodeQueries,
+			graphql.RemoveMutationInput,
+			graphql.RemoveEntitiesImplementingNode,
+			graphql.RemoveEntitiesImplementingOrder,
+			// graphql.RemoveEntitiesImplementingConnection,
 		),
 	)
 	if err != nil {
@@ -36,9 +37,16 @@ func main() {
 
 	templates := entgql.AllTemplates
 
+	moduleName, err := utils.GetModuleName()
+	if err != nil {
+		log.Fatalf("could not get module name: %v", err.Error())
+	}
+
+	pkg := fmt.Sprintf("%s/generated/ent", moduleName)
+
 	if err := entc.Generate("./ent/schema", &gen.Config{
 		Target:    "./generated/ent",
-		Package:   "github.com/gianglt2198/federation-go/services/account/generated/ent",
+		Package:   pkg,
 		Templates: templates,
 		Features: []gen.Feature{
 			gen.FeatureIntercept,

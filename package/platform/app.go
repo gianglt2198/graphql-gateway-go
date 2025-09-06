@@ -59,11 +59,11 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.WithLogger(func(logger *monitoring.Logger) fxevent.Logger {
 			return logger.Fx()
 		}),
-		// Provide NATS connection
-		fx.Provide(psnats.Module),
-		// Provide HTTP server
-		fx.Provide(httpservice.Module),
 	}
+	// Provide NATS connection
+	coreModules = append(coreModules, psnats.Module)
+	// Provide HTTP server
+	coreModules = append(coreModules, httpservice.Module)
 
 	if cfg.Servers.GraphQL.Enabled {
 		coreModules = append(coreModules, graphqlservice.Module)

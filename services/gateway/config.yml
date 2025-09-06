@@ -35,4 +35,4 @@ servers:
     # Subgraph configurations
     subgraphs:
       - name: account.graphql
-      - name: catalog.graphql
+      # - name: catalog.graphql
