@@ -13,8 +13,8 @@ import (
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/wsprotocol"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/executor"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers/wsprotocol"
 )
 
 type WebSocketFederationHandlerOptions struct {
@@ -65,63 +65,6 @@ func NewWebSocketFederationHandler(ctx context.Context, opts WebSocketFederation
 
 	return handler
 }
-
-// func (h *WebSocketFederationHandler) HandleUpgradeRequest(w http.ResponseWriter, r *http.Request) {
-// 	var subProtocol string
-// 	upgrader := ws.HTTPUpgrader{
-// 		Timeout: time.Second * 5,
-// 		Protocol: func(s string) bool {
-// 			if wsprotocol.IsSupportedSubprotocol(s) {
-// 				subProtocol = s
-// 				return true
-// 			}
-// 			return false
-// 		},
-// 	}
-
-// 	c, _, _, err := upgrader.Upgrade(r, w)
-// 	if err != nil {
-// 		_ = c.Close()
-// 		return
-// 	}
-
-// 	conn := newWSConnectionWrapper(c, h.readTimeout, h.writeTimeout)
-// 	protocol, err := wsprotocol.NewProtocol(subProtocol, conn)
-// 	if err != nil {
-// 		_ = c.Close()
-// 		return
-// 	}
-
-// 	handler := NewWebSocketConnectionHandler(h.ctx, WebSocketConnectionHandlerOptions{
-// 		Logger:   h.logger,
-// 		Executor: h.executor,
-
-// 		Request:        r,
-// 		ResponseWriter: w,
-
-// 		Protocol:   protocol,
-// 		Connection: conn,
-// 	})
-
-// 	err = handler.Initialize()
-// 	if err != nil {
-// 		h.logger.Error("Failed to initialize WebSocket connection handler", zap.Error(err))
-// 		handler.Close(false)
-// 		return
-// 	}
-
-// 	if h.netPoll != nil {
-// 		err = h.addConnection(c, handler)
-// 		if err != nil {
-// 			handler.Close(true)
-// 		}
-// 		return
-// 	}
-
-// 	// Handle messages sync when net poller implementation is not available
-
-// 	go h.handleConnectionSync(handler)
-// }
 
 func (h *WebSocketFederationHandler) HandleWSUpgradeRequest(c *websocket.Conn) {
 	conn := newWSConnectionWrapper(c, h.readTimeout, h.writeTimeout)

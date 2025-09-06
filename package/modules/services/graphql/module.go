@@ -8,9 +8,9 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/manager"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/registry"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v1"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/manager"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/registry"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/server"
 )
 

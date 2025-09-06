@@ -11,7 +11,6 @@ require (
 	github.com/gofiber/contrib/websocket v1.3.4
 	github.com/gofiber/fiber/v2 v2.52.8
 	github.com/golang-jwt/jwt/v5 v5.2.2
-	github.com/gorilla/websocket v1.5.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/jensneuse/abstractlogger v0.0.4
@@ -35,6 +34,7 @@ require (
 	github.com/wundergraph/graphql-go-tools/v2 v2.0.0-rc.207
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/mod v0.25.0
 	golang.org/x/sync v0.15.0
 	google.golang.org/protobuf v1.36.6
 )
@@ -69,6 +69,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
@@ -123,7 +124,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
-	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect

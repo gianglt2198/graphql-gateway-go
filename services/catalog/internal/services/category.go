@@ -97,7 +97,7 @@ func (s *categoryService) FindCategories(ctx context.Context, after *entgql.Curs
 	for i, edge := range categories.Edges {
 		category := edge.Node
 
-		categoryEntity, err := utils.ConvertTo[ent.Category, model.CategoryEntity](category)
+		categoryEntity, err := dtos.ToCategoryEntity(category)
 		if err != nil {
 			return nil, err
 		}

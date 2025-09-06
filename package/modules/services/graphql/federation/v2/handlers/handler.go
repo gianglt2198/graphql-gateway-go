@@ -10,14 +10,13 @@ import (
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
-	fwebsocket "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers/websocket"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/executor"
+	fwebsocket "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers/websocket"
 )
 
 const (
 	httpHeaderContentType          string = "Content-Type"
 	httpContentTypeApplicationJson string = "application/json"
-	httpHeaderUpgrade              string = "Upgrade"
 )
 
 type FederationHandler struct {
@@ -35,11 +34,6 @@ func NewFederationHandler(log *monitoring.Logger, executor *executor.Executor) *
 }
 
 func (h *FederationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// if h.isWebsocketUpgrade(r) {
-	// 	h.handleWebSocketUpgrade(w, r)
-	// 	return
-	// }
-
 	h.handleRequest(w, r)
 }
 
@@ -76,23 +70,3 @@ func (h *FederationHandler) handleRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
-
-// func (h *FederationHandler) handleWebSocketUpgrade(w http.ResponseWriter, r *http.Request) {
-// 	h.wsHandler = fwebsocket.NewWebSocketFederationHandler(r.Context(), fwebsocket.WebSocketFederationHandlerOptions{
-// 		Logger:       h.log,
-// 		Executor:     h.executor,
-// 		ReadTimeout:  30 * time.Second,
-// 		WriteTimeout: 30 * time.Second,
-// 	})
-
-// 	h.wsHandler.HandleUpgradeRequest(w, r)
-// }
-
-// func (g *FederationHandler) isWebsocketUpgrade(r *http.Request) bool {
-// 	for _, header := range r.Header[httpHeaderUpgrade] {
-// 		if header == "websocket" {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }

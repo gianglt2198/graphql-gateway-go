@@ -25,11 +25,11 @@ import (
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/executor"
-	fhandlers "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/handlers"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/loader"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/registry"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/executor"
+	fhandlers "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/loader"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/registry"
 	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
 )
 
@@ -98,12 +98,9 @@ func New(params FederationManagerParams) FederationManager {
 		}
 
 		app.Use("/ws", func(c *fiber.Ctx) error {
-			// IsWebSocketUpgrade returns true if the client
-			// requested upgrade to the WebSocket protocol.
 			if !websocket.IsWebSocketUpgrade(c) {
 				return fiber.ErrUpgradeRequired
 			}
-			c.Locals("allowed", true)
 			return c.Next()
 		})
 
@@ -144,7 +141,6 @@ func (f *federationManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (f *federationManager) ServeWS(c *websocket.Conn) {
 	if f.handler == nil {
-		// http.Error(, "Federation gateway not ready", http.StatusServiceUnavailable)
 		_ = c.WriteMessage(websocket.CloseMessage, []byte("Federation gateway not ready"))
 		return
 	}

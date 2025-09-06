@@ -3,7 +3,7 @@ package app
 import (
 	"go.uber.org/fx"
 
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/manager"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/manager"
 	"github.com/gianglt2198/federation-go/services/gateway/graphql"
 )
 

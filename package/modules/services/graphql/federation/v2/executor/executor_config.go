@@ -20,9 +20,9 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/loader"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/resolver"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/loader"
+	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/resolver"
 )
 
 type ExecutorConfigurationBuilder struct{}

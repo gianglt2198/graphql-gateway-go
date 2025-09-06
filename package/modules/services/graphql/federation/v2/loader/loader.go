@@ -15,8 +15,8 @@ import (
 	pubsub_datasource "github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	fpubsub "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
+	fpubsub "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/pubsub"
 )
 
 type FactoryResolver interface {

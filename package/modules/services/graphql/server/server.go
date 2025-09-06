@@ -21,7 +21,6 @@ import (
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/handlers"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/utils"
 	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
 )
@@ -85,7 +84,7 @@ func New(params ServerParams) common.GraphqlServer {
 	}
 
 	if params.ServerConfig.Enabled {
-		if err := handlers.RegisterHandler(params.AppConfig, params.Subscriber, exec); err != nil {
+		if err := RegisterHandler(params.AppConfig, params.Subscriber, exec); err != nil {
 			params.Logger.Fatal("Failed to register graphql handler", zap.Error(err))
 		}
 	}

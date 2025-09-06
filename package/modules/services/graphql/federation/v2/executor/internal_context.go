@@ -40,6 +40,6 @@ func (e *internalExecutionContext) setVariables(variables []byte) {
 	}
 }
 
-func (e *internalExecutionContext) reset() {
-	e.resolveContext.Free()
-}
+// func (e *internalExecutionContext) reset() {
+// 	e.resolveContext.Free()
+// }

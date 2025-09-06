@@ -20,7 +20,6 @@ import (
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/handlers"
 	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
 	"github.com/gianglt2198/federation-go/package/modules/services/http/transports"
 	"github.com/gianglt2198/federation-go/package/utils"
@@ -36,7 +35,7 @@ type federationManager struct {
 
 	handler        http.Handler
 	httpServer     httpServer.HTTPServer
-	handlerFactory handlers.HandlerFactory
+	handlerFactory HandlerFactory
 	registry       *SchemaRegistry
 	broker         pubsub.Broker
 
@@ -82,8 +81,8 @@ func New(params FederationManagerParams) *federationManager {
 	go f.registry.Start(context.Background())
 
 	if f.federationConfig.Playground {
-		var handlerFactory handlers.HandlerFactoryFn = func(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler {
-			return handlers.NewGraphqlHTTPHandler(logger, engine)
+		var handlerFactory HandlerFactoryFn = func(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler {
+			return NewGraphqlHTTPHandler(logger, engine)
 		}
 
 		f.handlerFactory = handlerFactory
