@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
+
 	"github.com/gianglt2198/federation-go/package/utils"
 )
 

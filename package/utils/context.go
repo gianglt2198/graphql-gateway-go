@@ -84,3 +84,11 @@ func ApplyValueByKeyWithCtx[T any](ctx context.Context, k common.KeyType, v *T) 
 func ApplyUserIDWithContext(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, common.KEY_AUTH_USER_ID, userID)
 }
+
+func GetFiberUserContext(ctx context.Context) context.Context {
+	userContext, ok := ctx.Value("__local_user_context__").(context.Context)
+	if ok {
+		return userContext
+	}
+	return ctx
+}

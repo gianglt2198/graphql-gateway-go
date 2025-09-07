@@ -1,16 +1,18 @@
 package repos
 
 import (
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 	"go.uber.org/fx"
+
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+
+	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 )
 
 type (
 	categoryRepository struct {
 		ent.CategoryRepository
 
-		log *monitoring.Logger
+		log *logging.Logger
 		db  *ent.Client
 	}
 
@@ -22,7 +24,7 @@ type (
 type CategoryRepositoryParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 	Db  *ent.Client
 }
 

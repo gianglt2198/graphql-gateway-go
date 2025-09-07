@@ -8,7 +8,9 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/helpers"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+	monitoring "github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/tracing"
 	psnats "github.com/gianglt2198/federation-go/package/infras/pubsub/nats"
 	"github.com/gianglt2198/federation-go/package/infras/serdes"
 	graphqlservice "github.com/gianglt2198/federation-go/package/modules/services/graphql"
@@ -36,19 +38,15 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Supply(cfg.Servers.HTTP),
 		fx.Supply(cfg.Servers.GraphQL),
 		fx.Supply(cfg.Servers.Federation),
-		fx.Supply(cfg.Metrics),
 		fx.Supply(cfg.Database),
 		fx.Supply(cfg.ETCD),
 		fx.Supply(cfg.NATS),
 		fx.Supply(cfg.Service),
 		fx.Supply(cfg.JWT),
 		fx.Supply(cfg.Encrypt),
+		fx.Supply(cfg.Tracing),
 		// Provide logger
 		fx.Provide(monitoring.NewLogger),
-		// Provide metrics
-		fx.Provide(monitoring.NewMetrics),
-		// Provide health checker
-		fx.Provide(monitoring.NewHealthChecker),
 		// Provide JWT helper
 		fx.Provide(helpers.NewJWTHelper),
 		// Provide encryptor
@@ -56,19 +54,23 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		// Provide serializers for NATS
 		fx.Provide(serdes.NewMsgPack),
 		// Logger configuration
-		fx.WithLogger(func(logger *monitoring.Logger) fxevent.Logger {
+		fx.WithLogger(func(logger *logging.Logger) fxevent.Logger {
 			return logger.Fx()
 		}),
 	}
-	// Provide NATS connection
-	coreModules = append(coreModules, psnats.Module)
-	// Provide HTTP server
-	coreModules = append(coreModules, httpservice.Module)
 
+	// Provide NATS connection
+	coreModules = append(coreModules, psnats.Module...)
+	// Provide HTTP server
+	coreModules = append(coreModules, httpservice.Module...)
+	// Provide Tracing Client
+	coreModules = append(coreModules, tracing.Module...)
+
+	// Provide SubGraphQL
 	if cfg.Servers.GraphQL.Enabled {
 		coreModules = append(coreModules, graphqlservice.Module)
 	}
-
+	// Provide Federation
 	if cfg.Servers.Federation.Enabled {
 		coreModules = append(coreModules, graphqlservice.FModuleV2)
 	}
@@ -90,7 +92,7 @@ func (a *app) Run(hooks ...fx.Hook) {
 	fx.New(opts...).Run()
 }
 
-func run(lifecycle fx.Lifecycle, log *monitoring.Logger) {
+func run(lifecycle fx.Lifecycle, log *logging.Logger) {
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			log.Info("Platform lifecycle OnStart")

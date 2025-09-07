@@ -6,6 +6,7 @@ import (
 	"io"
 
 	lru "github.com/hashicorp/golang-lru"
+
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/apollocompatibility"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/ast"

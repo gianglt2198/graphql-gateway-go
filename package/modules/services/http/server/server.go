@@ -3,21 +3,22 @@ package server
 import (
 	"fmt"
 
-	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
-	"github.com/gofiber/contrib/fiberzap/v2"
-	"github.com/gofiber/fiber/v2"
+	fiberzap "github.com/gofiber/contrib/fiberzap/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+
+	"github.com/gianglt2198/federation-go/package/config"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+	tcfiber "github.com/gianglt2198/federation-go/package/infras/monitoring/tracing/fiber"
 )
 
 type httpServer struct {
 	appConfig    config.AppConfig
 	serverConfig config.HTTPConfig
 
-	log     *monitoring.Logger
-	metrics *monitoring.Metrics
+	log *logging.Logger
 
 	app *fiber.App
 }
@@ -37,8 +38,7 @@ type HTTPServerParams struct {
 	AppConfig    config.AppConfig
 	ServerConfig config.HTTPConfig
 
-	Logger  *monitoring.Logger
-	Metrics *monitoring.Metrics
+	Logger *logging.Logger
 }
 
 func New(params HTTPServerParams) HTTPServer {
@@ -48,19 +48,30 @@ func New(params HTTPServerParams) HTTPServer {
 
 	// For better compatibility
 	app := createFiberApp(params.Logger)
+	app.Use(tcfiber.RequestIDMiddleware)
+	app.Use(tcfiber.LoggerMiddleware(params.Logger))
+	app.Use(tcfiber.TracingMiddleware("main", "request_caller",
+		tcfiber.TracingConfig{
+			ServiceName:    params.AppConfig.Name,
+			ServiceVersion: "1.0.0",
+		}))
+	app.Use(tcfiber.MetricMiddleware(
+		tcfiber.MetricConfig{
+			ServiceName:    params.AppConfig.Name,
+			ServiceVersion: "1.0.0",
+		}))
 
 	return &httpServer{
 		appConfig:    params.AppConfig,
 		serverConfig: params.ServerConfig,
 
-		log:     params.Logger,
-		metrics: params.Metrics,
+		log: params.Logger,
 
 		app: app,
 	}
 }
 
-func createFiberApp(logger *monitoring.Logger) *fiber.App {
+func createFiberApp(logger *logging.Logger) *fiber.App {
 	app := fiber.New()
 
 	// Set fiber logger, then we can use fiber log everywhere``

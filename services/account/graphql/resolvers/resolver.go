@@ -4,7 +4,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"go.uber.org/fx"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
@@ -13,7 +13,7 @@ import (
 )
 
 type Resolver struct {
-	log *monitoring.Logger
+	log *logging.Logger
 	db  *ent.Client
 
 	userService services.UserService
@@ -28,7 +28,7 @@ type Resolver struct {
 type ResolverParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 	Db  *ent.Client
 
 	UserService services.UserService

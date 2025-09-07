@@ -17,7 +17,7 @@ import (
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/executor"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers/wsprotocol"
 )
@@ -28,7 +28,7 @@ type SubscriptionRegistration struct {
 }
 
 type WebSocketConnectionHandlerOptions struct {
-	Logger   *monitoring.Logger
+	Logger   *logging.Logger
 	Executor *executor.Executor
 
 	Request        *http.Request
@@ -43,7 +43,7 @@ type WebSocketConnectionHandlerOptions struct {
 
 type WebSocketConnectionHandler struct {
 	ctx      context.Context
-	logger   *monitoring.Logger
+	logger   *logging.Logger
 	executor *executor.Executor
 
 	conn     *wsConnectionWrapper

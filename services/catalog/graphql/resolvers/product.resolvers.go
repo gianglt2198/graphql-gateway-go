@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql"
+
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
 )

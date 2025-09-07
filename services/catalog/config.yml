@@ -24,11 +24,9 @@ nats:
   max_reconnects: 500
   ping_interval: 10s
 
-metrics:
-  enabled: false
-  port: 9093
-  path: "/metrics"
-  namespace: "federation"
+tracing:
+  enabled: true
+  endpoint: "localhost:4317"
 
 # New servers configuration section
 servers:

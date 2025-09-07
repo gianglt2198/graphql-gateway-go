@@ -1,4 +1,4 @@
-package infras
+package redis
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"net"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	redis "github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/config"
 	infras "github.com/gianglt2198/federation-go/package/infras/cache"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/tracing"
 )
 
 // Redis represents a Redis client with monitoring
@@ -21,9 +22,8 @@ type Redis struct {
 	config    config.RedisConfig
 	appConfig config.AppConfig
 
-	client  *redis.Client
-	logger  *monitoring.Logger
-	metrics *monitoring.Metrics
+	client *redis.Client
+	logger *logging.Logger
 }
 
 type RedisParams struct {
@@ -31,8 +31,7 @@ type RedisParams struct {
 
 	AppConfig config.AppConfig
 	Config    config.RedisConfig
-	Logger    *monitoring.Logger
-	Metrics   *monitoring.Metrics
+	Logger    *logging.Logger
 }
 
 type RedisResult struct {
@@ -43,7 +42,7 @@ type RedisResult struct {
 
 // NewRedis creates a new Redis client
 func NewRedis(params RedisParams) RedisResult {
-	r := connect(params.AppConfig, params.Config, params.Logger, params.Metrics)
+	r := connect(params.AppConfig, params.Config, params.Logger)
 	return RedisResult{
 		Redis: r,
 	}
@@ -52,8 +51,7 @@ func NewRedis(params RedisParams) RedisResult {
 func connect(
 	appConfig config.AppConfig,
 	redisConfig config.RedisConfig,
-	logger *monitoring.Logger,
-	metrics *monitoring.Metrics) *Redis {
+	logger *logging.Logger) *Redis {
 	// Create Redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:         fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port),
@@ -81,15 +79,13 @@ func connect(
 		appConfig: appConfig,
 		config:    redisConfig,
 
-		client:  client,
-		logger:  logger,
-		metrics: metrics,
+		client: client,
+		logger: logger,
 	}
 
 	// Add hooks for monitoring
 	client.AddHook(&redisHook{
-		logger:  logger,
-		metrics: metrics,
+		logger: logger,
 	})
 
 	logger.GetLogger().Info("Redis connection established",
@@ -117,21 +113,21 @@ func (r *Redis) Get(ctx context.Context, key string) ([]byte, error) {
 	start := time.Now()
 	result := r.client.Get(ctx, key)
 
-	if r.metrics != nil {
-		if result.Err() == redis.Nil {
-			r.metrics.RecordCacheMiss(r.appConfig.Name, "string", key)
-		} else if result.Err() == nil {
-			r.metrics.RecordCacheHit(r.appConfig.Name, "string", key)
-		}
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "get")
-	}
+	// if r.metrics != nil {
+	// 	if result.Err() == redis.Nil {
+	// 		r.metrics.RecordCacheMiss(r.appConfig.Name, "string", key)
+	// 	} else if result.Err() == nil {
+	// 		r.metrics.RecordCacheHit(r.appConfig.Name, "string", key)
+	// 	}
+	// 	r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "get")
+	// }
 
 	if result.Err() == redis.Nil {
 		return []byte(""), nil // Key not found
 	}
 
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis GET failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis GET failed",
 			zap.String("key", key),
 			zap.Error(result.Err()),
 			zap.Duration("duration", time.Since(start)),
@@ -150,12 +146,8 @@ func (r *Redis) Set(ctx context.Context, key string, value []byte, expiration ti
 	start := time.Now()
 	result := r.client.Set(ctx, key, value, expiration)
 
-	if r.metrics != nil {
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "set")
-	}
-
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis SET failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis SET failed",
 			zap.String("key", key),
 			zap.Error(result.Err()),
 			zap.Duration("duration", time.Since(start)),
@@ -175,12 +167,8 @@ func (r *Redis) Del(ctx context.Context, keys ...string) error {
 	start := time.Now()
 	result := r.client.Del(ctx, keys...)
 
-	if r.metrics != nil {
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "del")
-	}
-
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis DEL failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis DEL failed",
 			zap.Strings("keys", keys),
 			zap.Error(result.Err()),
 			zap.Duration("duration", time.Since(start)),
@@ -201,12 +189,8 @@ func (r *Redis) ExistsMultiple(ctx context.Context, keys ...string) (int64, erro
 	start := time.Now()
 	result := r.client.Exists(ctx, keys...)
 
-	if r.metrics != nil {
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "exists")
-	}
-
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis EXISTS failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis EXISTS failed",
 			zap.Strings("keys", keys),
 			zap.Error(result.Err()),
 			zap.Duration("duration", time.Since(start)),
@@ -221,21 +205,14 @@ func (r *Redis) HGet(ctx context.Context, key, field string) (string, error) {
 	start := time.Now()
 	result := r.client.HGet(ctx, key, field)
 
-	if r.metrics != nil {
-		if result.Err() == redis.Nil {
-			r.metrics.RecordCacheMiss(r.appConfig.Name, "hash", key)
-		} else if result.Err() == nil {
-			r.metrics.RecordCacheHit(r.appConfig.Name, "hash", key)
-		}
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "hash", "hget")
-	}
+	tracing.Meter("redis")
 
 	if result.Err() == redis.Nil {
 		return "", nil // Field not found
 	}
 
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis HGET failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis HGET failed",
 			zap.String("key", key),
 			zap.String("field", field),
 			zap.Error(result.Err()),
@@ -251,12 +228,8 @@ func (r *Redis) HSet(ctx context.Context, key string, values ...interface{}) err
 	start := time.Now()
 	result := r.client.HSet(ctx, key, values...)
 
-	if r.metrics != nil {
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "hash", "hset")
-	}
-
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis HSET failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis HSET failed",
 			zap.String("key", key),
 			zap.Error(result.Err()),
 			zap.Duration("duration", time.Since(start)),
@@ -271,12 +244,8 @@ func (r *Redis) HDel(ctx context.Context, key string, fields ...string) error {
 	start := time.Now()
 	result := r.client.HDel(ctx, key, fields...)
 
-	if r.metrics != nil {
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "hash", "hdel")
-	}
-
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis HDEL failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis HDEL failed",
 			zap.String("key", key),
 			zap.Strings("fields", fields),
 			zap.Error(result.Err()),
@@ -292,12 +261,8 @@ func (r *Redis) Expire(ctx context.Context, key string, expiration time.Duration
 	start := time.Now()
 	result := r.client.Expire(ctx, key, expiration)
 
-	if r.metrics != nil {
-		r.metrics.RecordCacheOperation(r.appConfig.Name, "string", "expire")
-	}
-
 	if r.logger != nil && result.Err() != nil {
-		r.logger.ErrorC(ctx, "Redis EXPIRE failed",
+		r.logger.GetWrappedLogger(ctx).Error("Redis EXPIRE failed",
 			zap.String("key", key),
 			zap.Duration("expiration", expiration),
 			zap.Error(result.Err()),
@@ -450,8 +415,8 @@ func (l *redisLock) Refresh(ctx context.Context, ttl time.Duration) error {
 
 // redisHook implements redis.Hook for monitoring
 type redisHook struct {
-	logger  *monitoring.Logger
-	metrics *monitoring.Metrics
+	logger *logging.Logger
+	metric *redisMetric
 }
 
 func (h *redisHook) DialHook(next redis.DialHook) redis.DialHook {
@@ -461,17 +426,17 @@ func (h *redisHook) DialHook(next redis.DialHook) redis.DialHook {
 
 		if h.logger != nil {
 			if err != nil {
-				h.logger.ErrorC(ctx, "Redis dial failed",
+				h.logger.GetWrappedLogger(ctx).Error("Redis dial failed",
 					zap.String("network", network),
 					zap.String("addr", addr),
 					zap.Error(err),
-					zap.Duration("duration", time.Since(start)),
+					zap.Int64("duration", time.Since(start).Milliseconds()),
 				)
 			} else {
-				h.logger.DebugC(ctx, "Redis dial successful",
+				h.logger.GetWrappedLogger(ctx).Debug("Redis dial successful",
 					zap.String("network", network),
 					zap.String("addr", addr),
-					zap.Duration("duration", time.Since(start)),
+					zap.Int64("duration", time.Since(start).Milliseconds()),
 				)
 			}
 		}
@@ -484,14 +449,18 @@ func (h *redisHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
 	return func(ctx context.Context, cmd redis.Cmder) error {
 		start := time.Now()
 		err := next(ctx, cmd)
-		duration := time.Since(start)
+		duration := time.Since(start).Milliseconds()
+
+		if h.metric != nil {
+			h.metric.CacheOperations.Add(ctx, 1)
+		}
 
 		if h.logger != nil {
-			h.logger.DebugC(ctx, "Redis command executed",
+			h.logger.GetWrappedLogger(ctx).Debug("Redis command executed",
 				zap.String("command", cmd.Name()),
 				zap.String("args", fmt.Sprintf("%v", cmd.Args())),
 				zap.Error(err),
-				zap.Duration("duration", duration),
+				zap.Int64("duration", duration),
 			)
 		}
 
@@ -503,13 +472,17 @@ func (h *redisHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.Pr
 	return func(ctx context.Context, cmds []redis.Cmder) error {
 		start := time.Now()
 		err := next(ctx, cmds)
-		duration := time.Since(start)
+		duration := time.Since(start).Milliseconds()
+
+		if h.metric != nil {
+			h.metric.CacheOperations.Add(ctx, 1)
+		}
 
 		if h.logger != nil {
-			h.logger.DebugC(ctx, "Redis pipeline executed",
+			h.logger.GetWrappedLogger(ctx).Debug("Redis pipeline executed",
 				zap.Int("commands_count", len(cmds)),
 				zap.Error(err),
-				zap.Duration("duration", duration),
+				zap.Int64("duration", duration),
 			)
 		}
 

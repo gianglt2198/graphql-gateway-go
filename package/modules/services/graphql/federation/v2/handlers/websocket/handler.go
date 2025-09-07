@@ -7,18 +7,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gofiber/contrib/websocket"
 	"go.uber.org/zap"
 
-	"github.com/gofiber/contrib/websocket"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/executor"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers/wsprotocol"
 )
 
 type WebSocketFederationHandlerOptions struct {
-	Logger   *monitoring.Logger
+	Logger   *logging.Logger
 	Executor *executor.Executor
 
 	ReadTimeout  time.Duration
@@ -31,7 +31,7 @@ type WebSocketFederationHandlerOptions struct {
 
 type WebSocketFederationHandler struct {
 	ctx      context.Context
-	logger   *monitoring.Logger
+	logger   *logging.Logger
 	executor *executor.Executor
 
 	netPoll       netpoll.Poller

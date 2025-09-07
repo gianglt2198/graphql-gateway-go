@@ -9,20 +9,21 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
+	"github.com/gianglt2198/federation-go/package/utils"
 )
 
 type NatsTransport struct {
 	http.RoundTripper
 
-	logger *monitoring.Logger
+	logger *logging.Logger
 	broker pubsub.Broker
 }
 
 type NatsTransportParams struct {
 	Upstream *http.Transport
-	Logger   *monitoring.Logger
+	Logger   *logging.Logger
 	Broker   pubsub.Broker
 }
 
@@ -42,8 +43,10 @@ func (t *NatsTransport) RoundTrip(req *http.Request) (resp *http.Response, err e
 		return nil, fmt.Errorf("do request: %v", err)
 	}
 
+	ctx := utils.GetFiberUserContext(req.Context())
+
 	var result any
-	err = t.broker.Request(req.Context(), req.Host, buf, nil, 5*time.Second, &result)
+	err = t.broker.Request(ctx, req.Host, buf, nil, 5*time.Second, &result)
 	if err != nil {
 		t.logger.Error(err.Error())
 		return nil, fmt.Errorf("do request: %v", err)

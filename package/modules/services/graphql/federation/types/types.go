@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
-	"github.com/wundergraph/cosmo/composition-go"
+
+	composition "github.com/wundergraph/cosmo/composition-go"
 	"github.com/wundergraph/graphql-go-tools/execution/engine"
 )
 

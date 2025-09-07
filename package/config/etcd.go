@@ -1,7 +1,5 @@
 package config
 
-
-
 // ETCDConfig holds etcd configuration
 type ETCDConfig struct {
 	Endpoints   []string `mapstructure:"endpoints"`

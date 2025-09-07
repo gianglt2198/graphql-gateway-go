@@ -13,10 +13,10 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"github.com/wundergraph/cosmo/composition-go"
+	composition "github.com/wundergraph/cosmo/composition-go"
 
 	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	"github.com/gianglt2198/federation-go/package/utils"
@@ -24,7 +24,7 @@ import (
 
 type SchemaRegistry struct {
 	httpClient   *http.Client
-	logger       *monitoring.Logger
+	logger       *logging.Logger
 	brokerClient pubsub.Broker
 
 	config config.FederationConfig
@@ -37,7 +37,7 @@ type SchemaRegistry struct {
 type SchemaRegistryParams struct {
 	fx.In
 
-	Logger       *monitoring.Logger
+	Logger       *logging.Logger
 	Config       config.FederationConfig
 	BrokerClient pubsub.Broker
 }

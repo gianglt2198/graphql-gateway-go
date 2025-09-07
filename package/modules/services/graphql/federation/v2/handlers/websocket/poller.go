@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
 	"go.uber.org/zap"
+
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/netpoll"
 )
 
 func (h *WebSocketFederationHandler) addConnection(conn net.Conn, handler *WebSocketConnectionHandler) error {

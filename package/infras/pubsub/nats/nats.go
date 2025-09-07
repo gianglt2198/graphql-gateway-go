@@ -7,13 +7,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nats-io/nats.go"
+	nats "github.com/nats-io/nats.go"
 	"github.com/pingcap/errors"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+	tcnats "github.com/gianglt2198/federation-go/package/infras/monitoring/tracing/nats"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/infras/serdes"
 	"github.com/gianglt2198/federation-go/package/utils"
@@ -23,24 +24,28 @@ type (
 	natsProvider struct {
 		cfg     config.NATSConfig
 		nc      *nats.Conn
-		log     *monitoring.Logger
+		log     *logging.Logger
 		factory MessageFactory
 
 		subscriptions map[string]*nats.Subscription
 		chans         map[string]chan *nats.Msg
+
+		middlewares []NatsMiddleware
 
 		mu sync.RWMutex
 	}
 )
 
 var _ pubsub.Client = (*natsProvider)(nil)
+
 var _ pubsub.QueueSubscriber = (*natsProvider)(nil)
+
 var _ pubsub.Broker = (*natsProvider)(nil)
 
 type NatsParams struct {
 	fx.In
 
-	Log      *monitoring.Logger
+	Log      *logging.Logger
 	Config   config.NATSConfig
 	SeqModel serdes.Serializer
 }
@@ -51,7 +56,7 @@ func New(params NatsParams) *natsProvider {
 	return provider
 }
 
-func connect(log *monitoring.Logger, cfg config.NATSConfig) *natsProvider {
+func connect(log *logging.Logger, cfg config.NATSConfig) *natsProvider {
 	if !cfg.Enabled {
 		return nil
 	}
@@ -85,6 +90,9 @@ func connect(log *monitoring.Logger, cfg config.NATSConfig) *natsProvider {
 		log:           log,
 		subscriptions: make(map[string]*nats.Subscription),
 		chans:         make(map[string]chan *nats.Msg),
+		middlewares: []NatsMiddleware{
+			tcnats.OperationMiddleware,
+		},
 	}
 }
 
@@ -94,7 +102,11 @@ func (n *natsProvider) Publish(ctx context.Context, pattern string, data []byte,
 		return errors.Wrap(err, "send event failed because encode data to json has error")
 	}
 
-	return n.nc.PublishMsg(msg)
+	handler := n.Middleware(ctx, "publish", func(c context.Context, msg *nats.Msg) error {
+		return n.nc.PublishMsg(msg)
+	}, n.middlewares...)
+
+	return handler(ctx, msg)
 }
 
 func (n *natsProvider) Subscribe(ctx context.Context, topic string, handler pubsub.Handler) {
@@ -109,27 +121,32 @@ func (n *natsProvider) Subscribe(ctx context.Context, topic string, handler pubs
 	}
 
 	sub, err := n.nc.Subscribe(subject, func(msg *nats.Msg) {
-		data, err := n.factory.ReadMessage(msg)
-		if err != nil {
-			n.log.GetLogger().Error("Error reading message",
-				zap.String("topic", msg.Subject),
-				zap.Error(err))
-		}
-		ctx = applyHeadersToContext(ctx, msg)
-
-		resp, err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: data})
-		if err != nil {
-			n.log.GetLogger().Error("Error processing message",
-				zap.String("topic", msg.Subject),
-				zap.Error(err))
-		}
-		if resp != nil {
-			if err := msg.RespondMsg(natsResponse(resp)); err != nil {
-				n.log.GetLogger().Error("Error responding to message",
+		handler := n.Middleware(ctx, "subscribe", func(c context.Context, msg *nats.Msg) error {
+			data, err := n.factory.ReadMessage(msg)
+			if err != nil {
+				n.log.GetLogger().Error("Error reading message",
 					zap.String("topic", msg.Subject),
 					zap.Error(err))
 			}
-		}
+			c = applyHeadersToContext(c, msg)
+
+			resp, err := handler(c, pubsub.Message{Topic: msg.Subject, Data: data})
+			if err != nil {
+				n.log.GetLogger().Error("Error processing message",
+					zap.String("topic", msg.Subject),
+					zap.Error(err))
+			}
+			if resp != nil {
+				if err := msg.RespondMsg(natsResponse(resp)); err != nil {
+					n.log.GetLogger().Error("Error responding to message",
+						zap.String("topic", msg.Subject),
+						zap.Error(err))
+				}
+			}
+			return nil
+		}, n.middlewares...)
+
+		_ = handler(ctx, msg)
 	})
 
 	if err != nil {
@@ -177,28 +194,33 @@ func (n *natsProvider) QueueSubscribe(ctx context.Context, topic string, group s
 	go func() {
 		defer utils.RecoverFn()
 		for msg := range ch {
-			data, err := n.factory.ReadMessage(msg)
-			if err != nil {
-				n.log.GetLogger().Error("Error reading message",
-					zap.String("topic", msg.Subject),
-					zap.Error(err))
-			}
-
-			ctx = applyHeadersToContext(ctx, msg)
-
-			resp, err := handler(ctx, pubsub.Message{Topic: msg.Subject, Data: data})
-			if err != nil {
-				n.log.GetLogger().Error("Error processing message",
-					zap.String("topic", msg.Subject),
-					zap.Error(err))
-			}
-			if resp != nil {
-				if err := msg.RespondMsg(natsResponse(resp)); err != nil {
-					n.log.GetLogger().Error("Error responding to message",
+			handler := n.Middleware(ctx, "queue_subscribe", func(c context.Context, msg *nats.Msg) error {
+				data, err := n.factory.ReadMessage(msg)
+				if err != nil {
+					n.log.GetLogger().Error("Error reading message",
 						zap.String("topic", msg.Subject),
 						zap.Error(err))
 				}
-			}
+
+				c = applyHeadersToContext(c, msg)
+
+				resp, err := handler(c, pubsub.Message{Topic: msg.Subject, Data: data})
+				if err != nil {
+					n.log.GetLogger().Error("Error processing message",
+						zap.String("topic", msg.Subject),
+						zap.Error(err))
+				}
+				if resp != nil {
+					if err := msg.RespondMsg(natsResponse(resp)); err != nil {
+						n.log.GetLogger().Error("Error responding to message",
+							zap.String("topic", msg.Subject),
+							zap.Error(err))
+					}
+				}
+				return nil
+			}, n.middlewares...)
+
+			_ = handler(ctx, msg)
 		}
 	}()
 
@@ -262,16 +284,21 @@ func (n *natsProvider) Request(ctx context.Context, pattern string, data any, at
 		return errors.Wrap(err, "new message error")
 	}
 	headers := getHeaders(msg)
-	n.log.DebugC(ctx, "request to subject", zap.String("subject", msg.Subject), zap.String("type", "request"), zap.Any("headers", headers))
-	resp, err := n.nc.RequestMsg(msg, timeout*time.Second)
-	if err != nil {
-		return err
-	}
+	n.log.GetWrappedLogger(ctx).Debug("request to subject", zap.String("subject", msg.Subject), zap.String("type", "request"), zap.Any("headers", headers))
 
-	if err := json.Unmarshal(resp.Data, res); err != nil {
-		return errors.Wrap(err, "unmarshal response error")
-	}
-	return nil
+	handler := n.Middleware(ctx, "request", func(c context.Context, msg *nats.Msg) error {
+		resp, err := n.nc.RequestMsg(msg, timeout*time.Second)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(resp.Data, res); err != nil {
+			return errors.Wrap(err, "unmarshal response error")
+		}
+		return nil
+	}, n.middlewares...)
+
+	return handler(ctx, msg)
 }
 
 func natsResponse(resp any) *nats.Msg {
@@ -286,19 +313,25 @@ func natsResponse(resp any) *nats.Msg {
 	}
 }
 
+type HeaderKey string
+
+const (
+	HeaderStartTime HeaderKey = "start_time"
+)
+
 func applyHeadersToContext(ctx context.Context, msg *nats.Msg) context.Context {
 	headers := msg.Header
 
 	for k, v := range headers {
-		if k == "start_time" {
-			startTime, err := time.Parse(time.RFC3339Nano, v[0])
+		if k == string(HeaderStartTime) {
+			st, err := time.Parse(time.RFC3339Nano, v[0])
 			if err != nil {
 				return ctx
 			}
-			ctx = context.WithValue(ctx, "start_time", startTime)
+			ctx = context.WithValue(ctx, HeaderStartTime, st)
 			continue
 		}
-		ctx = context.WithValue(ctx, k, v[0])
+		ctx = context.WithValue(ctx, HeaderKey(k), v[0])
 	}
 
 	return ctx

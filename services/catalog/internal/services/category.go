@@ -4,21 +4,23 @@ import (
 	"context"
 
 	"entgo.io/contrib/entgql"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/samber/lo"
+	"go.uber.org/fx"
+
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/utils"
+
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/category"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/product"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
 	"github.com/gianglt2198/federation-go/services/catalog/internal/dtos"
 	"github.com/gianglt2198/federation-go/services/catalog/internal/repos"
-	"github.com/samber/lo"
-	"go.uber.org/fx"
 )
 
 type (
 	categoryService struct {
-		log *monitoring.Logger
+		log *logging.Logger
 
 		categoryRepository repos.CategoryRepository
 	}
@@ -36,7 +38,7 @@ type (
 type CategoryServiceParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 
 	CategoryRepository repos.CategoryRepository
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/utils"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
@@ -18,7 +18,7 @@ import (
 
 type (
 	userService struct {
-		log *monitoring.Logger
+		log *logging.Logger
 
 		userRepository repos.UserRepository
 	}
@@ -37,7 +37,7 @@ type (
 type UserServiceParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 
 	UserRepository repos.UserRepository
 }

@@ -10,10 +10,9 @@ import (
 	"github.com/wundergraph/cosmo/router/pkg/config"
 	pubsub_datasource "github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 	"github.com/wundergraph/cosmo/router/pkg/pubsub/nats"
-
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 )
 
 type DataSourceConfigurationWithMetadata struct {
@@ -54,7 +53,7 @@ func (e *ProviderNotDefinedError) Error() string {
 func BuildProvidersAndDataSources(
 	ctx context.Context,
 	config config.EventsConfiguration,
-	logger *monitoring.Logger,
+	logger *logging.Logger,
 	dsConfs []DataSourceConfigurationWithMetadata,
 	hostName string,
 	routerListenAddr string,

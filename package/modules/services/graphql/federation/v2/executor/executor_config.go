@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	lru "github.com/hashicorp/golang-lru"
+
+	nodev1 "github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/node/v1"
+	pubsub_datasource "github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/apollocompatibility"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/ast"
@@ -15,10 +18,7 @@ import (
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/operationreport"
 
-	nodev1 "github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/node/v1"
-	pubsub_datasource "github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
-
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/loader"
@@ -34,7 +34,7 @@ type ExecutorConfigurationBuildParams struct {
 	Reporter           resolve.Reporter
 	InstanceData       types.InstanceData
 	Broker             pubsub.Broker
-	Logger             *monitoring.Logger
+	Logger             *logging.Logger
 	Introspection      bool
 }
 

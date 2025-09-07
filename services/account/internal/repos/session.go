@@ -3,7 +3,7 @@ package repos
 import (
 	"go.uber.org/fx"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 
 	"github.com/gianglt2198/federation-go/services/account/generated/ent"
 )
@@ -12,7 +12,7 @@ type (
 	sessionRepository struct {
 		ent.SessionRepository
 
-		log *monitoring.Logger
+		log *logging.Logger
 		db  *ent.Client
 	}
 
@@ -24,7 +24,7 @@ type (
 type SessionRepositoryParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 	Db  *ent.Client
 }
 

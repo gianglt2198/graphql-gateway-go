@@ -5,8 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 )
 
 func (f *federationManager) startupProviders(ctx context.Context) error {

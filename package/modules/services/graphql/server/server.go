@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/utils"
@@ -29,7 +29,7 @@ type graphqlServer struct {
 	appConfig    config.AppConfig
 	serverConfig config.GraphQLConfig
 
-	log        *monitoring.Logger
+	log        *logging.Logger
 	httpServer httpServer.HTTPServer
 	subscriber pubsub.QueueSubscriber
 
@@ -42,7 +42,7 @@ type ServerParams struct {
 	AppConfig    config.AppConfig
 	ServerConfig config.GraphQLConfig
 
-	Logger     *monitoring.Logger
+	Logger     *logging.Logger
 	HTTPServer httpServer.HTTPServer
 	Subscriber pubsub.QueueSubscriber
 
@@ -63,7 +63,7 @@ func New(params ServerParams) common.GraphqlServer {
 		return utils.HandleGraphqlError(ctx, err)
 	})
 	exec.SetRecoverFunc(func(ctx context.Context, err any) error {
-		params.Logger.ErrorC(ctx, "error recover", zap.Any("err", err), zap.Any("stack", string(runDebug.Stack())))
+		params.Logger.GetWrappedLogger(ctx).Error("error recover", zap.Any("err", err), zap.Any("stack", string(runDebug.Stack())))
 		return utils.RecoverFunc(ctx, err)
 	})
 

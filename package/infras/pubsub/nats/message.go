@@ -5,9 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql"
 	nats "github.com/nats-io/nats.go"
+	"go.opentelemetry.io/otel/propagation"
 
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/tracing"
 	"github.com/gianglt2198/federation-go/package/infras/serdes"
 	"github.com/gianglt2198/federation-go/package/utils"
 )
@@ -97,12 +98,18 @@ func (f *messageFactory) setDefaultHeaders(ctx context.Context, msg *nats.Msg) {
 	utils.ApplyTraceIDWithContext(ctx)
 	utils.ApplySpanIDWithContext(ctx)
 	utils.ApplyRequestIDWithContext(ctx)
-	ctx = graphql.StartOperationTrace(ctx)
 	userID := utils.GetUserIDFromCtx(ctx)
 	if userID == "" {
 		userID = "system"
 	}
 	msg.Header.Set("user_id", userID)
 	msg.Header.Set("from", f.provider.cfg.Name)
-	msg.Header.Set("start_time", graphql.GetStartTime(ctx).Format(time.RFC3339Nano))
+	msg.Header.Set("start_time", time.Now().UTC().Format(time.RFC3339Nano))
+
+	carrier := propagation.MapCarrier{}
+	tracing.Propagation().Inject(ctx, carrier)
+
+	for key, val := range carrier {
+		msg.Header.Set(key, val)
+	}
 }

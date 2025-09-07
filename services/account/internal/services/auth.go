@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gianglt2198/federation-go/package/helpers"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/utils"
 
 	"github.com/gianglt2198/federation-go/services/account/config"
@@ -24,7 +24,7 @@ import (
 
 type (
 	authService struct {
-		log *monitoring.Logger
+		log *logging.Logger
 
 		config config.AccountConfig
 
@@ -47,7 +47,7 @@ type (
 type AuthServiceParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 
 	Config config.AccountConfig
 
@@ -78,7 +78,7 @@ func NewAuthService(params AuthServiceParams) AuthServiceResult {
 }
 
 func (s *authService) Register(ctx context.Context, input model.RegisterInput) (*ent.User, error) {
-	s.log.InfoC(ctx, "Starting user registration", zap.String("username", input.Username))
+	s.log.GetWrappedLogger(ctx).Info("Starting user registration", zap.String("username", input.Username))
 
 	ctx = utils.ApplyUserIDWithContext(ctx, "system")
 
@@ -87,14 +87,14 @@ func (s *authService) Register(ctx context.Context, input model.RegisterInput) (
 		Where(user.Or(user.UsernameEQ(input.Username), user.EmailEQ(input.Email))).
 		First(ctx)
 	if err == nil && existingUser != nil {
-		s.log.WarnC(ctx, "User already exists", zap.String("username", input.Username))
+		s.log.GetWrappedLogger(ctx).Warn("User already exists", zap.String("username", input.Username))
 		return nil, errors.New("user already exists")
 	}
 
 	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		s.log.ErrorC(ctx, "Failed to hash password", zap.Error(err))
+		s.log.GetWrappedLogger(ctx).Error("Failed to hash password", zap.Error(err))
 		return nil, errors.New("failed to process password")
 	}
 
@@ -111,11 +111,11 @@ func (s *authService) Register(ctx context.Context, input model.RegisterInput) (
 	// Create the user
 	newUser, err := s.userRepository.CreateOne(ctx, createUserInput)
 	if err != nil {
-		s.log.ErrorC(ctx, "Failed to create user", zap.Error(err))
+		s.log.GetWrappedLogger(ctx).Error("Failed to create user", zap.Error(err))
 		return nil, errors.New("failed to create user")
 	}
 
-	s.log.InfoC(ctx, "User registered successfully",
+	s.log.GetWrappedLogger(ctx).Info("User registered successfully",
 		zap.String("user_id", string(newUser.ID)),
 		zap.String("username", newUser.Username),
 	)
@@ -124,27 +124,27 @@ func (s *authService) Register(ctx context.Context, input model.RegisterInput) (
 }
 
 func (s *authService) Login(ctx context.Context, input model.LoginInput) (string, error) {
-	s.log.InfoC(ctx, "Starting user login", zap.String("username", input.Username))
+	s.log.GetWrappedLogger(ctx).Info("Starting user login", zap.String("username", input.Username))
 
 	// Find user by username
 	foundUser, err := s.userRepository.Query(ctx).
 		Where(user.UsernameEQ(input.Username)).
 		First(ctx)
 	if err != nil {
-		s.log.WarnC(ctx, "User not found", zap.String("username", input.Username))
+		s.log.GetWrappedLogger(ctx).Warn("User not found", zap.String("username", input.Username))
 		return "", errors.New("invalid username or password")
 	}
 
 	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
 	if err != nil {
-		s.log.WarnC(ctx, "Invalid password", zap.String("username", input.Username))
+		s.log.GetWrappedLogger(ctx).Warn("Invalid password", zap.String("username", input.Username))
 		return "", errors.New("invalid username or password")
 	}
 
 	_, err = s.sessionRepository.DeleteWithPredicates(ctx, session.HasUserWith(user.IDEQ(string(foundUser.ID))))
 	if err != nil {
-		s.log.ErrorC(ctx, "Failed to delete sessions", zap.Error(err))
+		s.log.GetWrappedLogger(ctx).Error("Failed to delete sessions", zap.Error(err))
 		return "", errors.New("failed to delete sessions")
 	}
 
@@ -156,7 +156,7 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 
 	sess, err := s.sessionRepository.CreateOne(ctx, sessionInput)
 	if err != nil {
-		s.log.ErrorC(ctx, "Failed to create session", zap.Error(err))
+		s.log.GetWrappedLogger(ctx).Error("Failed to create session", zap.Error(err))
 		return "", errors.New("failed to create session")
 	}
 
@@ -171,11 +171,11 @@ func (s *authService) Login(ctx context.Context, input model.LoginInput) (string
 
 	token, err := s.jwtHelper.GenerateToken(claims)
 	if err != nil {
-		s.log.ErrorC(ctx, "Failed to generate JWT token", zap.Error(err))
+		s.log.GetWrappedLogger(ctx).Error("Failed to generate JWT token", zap.Error(err))
 		return "", errors.New("failed to generate authentication token")
 	}
 
-	s.log.InfoC(ctx, "User logged in successfully",
+	s.log.GetWrappedLogger(ctx).Info("User logged in successfully",
 		zap.String("user_id", string(foundUser.ID)),
 		zap.String("username", foundUser.Username),
 	)
@@ -188,7 +188,7 @@ func (s *authService) Logout(ctx context.Context) error {
 
 	_, err := s.sessionRepository.DeleteWithPredicates(ctx, session.HasUserWith(user.IDEQ(userID)))
 	if err != nil {
-		s.log.ErrorC(ctx, "Failed to delete session", zap.Error(err))
+		s.log.GetWrappedLogger(ctx).Error("Failed to delete session", zap.Error(err))
 		return errors.New("failed to logout")
 	}
 

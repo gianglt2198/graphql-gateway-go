@@ -2,14 +2,16 @@ package resolvers
 
 import (
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"go.uber.org/fx"
+
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
+
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/generated"
 	"github.com/gianglt2198/federation-go/services/catalog/internal/services"
-	"go.uber.org/fx"
 )
 
 type Resolver struct {
-	log *monitoring.Logger
+	log *logging.Logger
 
 	categoryService services.CategoryService
 	productService  services.ProductService
@@ -18,7 +20,7 @@ type Resolver struct {
 type ResolverParams struct {
 	fx.In
 
-	Log *monitoring.Logger
+	Log *logging.Logger
 
 	CategoryService services.CategoryService
 	ProductService  services.ProductService

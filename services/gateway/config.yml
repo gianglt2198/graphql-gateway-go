@@ -4,12 +4,9 @@ app:
   environment: "development"
   debug: true
 
-metrics:
+tracing:
   enabled: true
-  port: 9095
-  path: "/metrics"
-  namespace: "federation"
-  subsystem: "gateway"
+  endpoint: "localhost:4317"
 
 # NATS Configuration
 nats:

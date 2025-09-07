@@ -6,15 +6,14 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/datasource/graphql_datasource"
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
-
 	"github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/common"
 	nodev1 "github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/node/v1"
 	"github.com/wundergraph/cosmo/router/pkg/config"
 	pubsub_datasource "github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/datasource/graphql_datasource"
+	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	fpubsub "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/pubsub"
 )
@@ -35,10 +34,10 @@ type Loader struct {
 	ctx      context.Context
 	resolver FactoryResolver
 	// includeInfo controls whether additional information like type usage and field usage is included in the plan definition
-	logger *monitoring.Logger
+	logger *logging.Logger
 }
 
-func NewLoader(ctx context.Context, resolver FactoryResolver, logger *monitoring.Logger) *Loader {
+func NewLoader(ctx context.Context, resolver FactoryResolver, logger *logging.Logger) *Loader {
 	return &Loader{
 		ctx:      ctx,
 		resolver: resolver,

@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/config"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 )
 
 // HealthStatus represents the health status of a component
@@ -48,8 +49,7 @@ type HealthChecker struct {
 	checks      map[string]*HealthCheck
 	results     map[string]HealthCheckResult
 	mu          sync.RWMutex
-	metrics     *Metrics
-	logger      *Logger
+	logger      *logging.Logger
 }
 
 // HealthResponse represents the overall health response
@@ -64,12 +64,11 @@ type HealthResponse struct {
 }
 
 // NewHealthChecker creates a new health checker
-func NewHealthChecker(cfg *config.AppConfig, metrics *Metrics, logger *Logger) *HealthChecker {
+func NewHealthChecker(cfg *config.AppConfig, logger *logging.Logger) *HealthChecker {
 	return &HealthChecker{
 		serviceName: cfg.Name,
 		checks:      make(map[string]*HealthCheck),
 		results:     make(map[string]HealthCheckResult),
-		metrics:     metrics,
 		logger:      logger,
 	}
 }
@@ -142,12 +141,6 @@ func (hc *HealthChecker) RunCheck(ctx context.Context, name string) HealthCheckR
 	hc.mu.Lock()
 	hc.results[name] = result
 	hc.mu.Unlock()
-
-	// Record metrics
-	if hc.metrics != nil {
-		healthy := result.Status == HealthStatusHealthy
-		hc.metrics.SetServiceHealth(hc.serviceName, name, healthy)
-	}
 
 	// Log the result
 	if hc.logger != nil {

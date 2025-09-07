@@ -19,14 +19,14 @@ import (
 	"github.com/samber/lo"
 
 	"{{ $.Config.Package }}/predicate"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/utils"
 )
 
 type (
 	// {{ $nameLower }}Repository implements {{ $name }}Repository
 	{{ $nameLower }}Repository struct {
-		log *monitoring.Logger
+		log *logging.Logger
 		db  *Client
 	}
 
@@ -47,7 +47,7 @@ type (
 )
 
 // New{{ $name }}Repository creates a new {{ $name }} repository
-func New{{ $name }}Repository(log *monitoring.Logger, db *Client) {{ $name }}Repository {
+func New{{ $name }}Repository(log *logging.Logger, db *Client) {{ $name }}Repository {
 	return &{{ $nameLower }}Repository{
 		log: log,
 		db:  db,

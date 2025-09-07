@@ -10,14 +10,14 @@ import (
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/datasource/graphql_datasource"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
 	"github.com/gianglt2198/federation-go/package/modules/services/http/transports"
 )
 
 type DefaultFactoryResolver struct {
-	logger *monitoring.Logger
+	logger *logging.Logger
 
 	engineCtx context.Context
 
@@ -31,7 +31,7 @@ type DefaultFactoryResolver struct {
 
 func NewDefaultFactoryResolver(
 	ctx context.Context,
-	logger *monitoring.Logger,
+	logger *logging.Logger,
 	enableNetPoll bool,
 	instanceData types.InstanceData,
 	broker pubsub.Broker,

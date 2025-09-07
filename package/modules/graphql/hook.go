@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"entgo.io/ent/entc/gen"
-
 	"github.com/vektah/gqlparser/v2/ast"
 )
 

@@ -15,9 +15,9 @@ type Config[T any] struct {
 	Redis    RedisConfig    `mapstructure:"redis"`
 	NATS     NATSConfig     `mapstructure:"nats"`
 	ETCD     ETCDConfig     `mapstructure:"etcd"`
-	Metrics  MetricsConfig  `mapstructure:"metrics"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Encrypt  EncryptConfig  `mapstructure:"encrypt"`
+	Tracing  TracingConfig  `mapstructure:"tracing"`
 	Service  T              `mapstructure:"service"`
 }
 

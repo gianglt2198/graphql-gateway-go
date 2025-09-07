@@ -6,18 +6,20 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/http/server"
 )
 
-var Module = fx.Module("http-server",
-	fx.Provide(server.New),
-	fx.Invoke(RegisterHTTPServer),
-)
+var Module = []fx.Option{
+	fx.Module("http-server",
+		fx.Provide(server.New),
+		fx.Invoke(RegisterHTTPServer),
+	),
+}
 
 func RegisterHTTPServer(
 	Lifecycle fx.Lifecycle,
-	Log *monitoring.Logger,
+	Log *logging.Logger,
 	HTTPServer server.HTTPServer,
 ) {
 	if HTTPServer == nil {

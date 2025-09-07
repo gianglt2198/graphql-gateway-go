@@ -1,13 +1,12 @@
 package db
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"embed"
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"

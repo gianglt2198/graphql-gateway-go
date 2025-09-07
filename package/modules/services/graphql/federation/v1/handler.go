@@ -15,7 +15,7 @@ import (
 	"github.com/wundergraph/graphql-go-tools/execution/subscription"
 	"github.com/wundergraph/graphql-go-tools/execution/subscription/websocket"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 )
 
 const (
@@ -26,21 +26,21 @@ const (
 
 type (
 	GraphQLHTTPHandler struct {
-		logger *monitoring.Logger
+		logger *logging.Logger
 		engine *engine.ExecutionEngine
 	}
 	HandlerFactory interface {
-		Make(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler
+		Make(logger *logging.Logger, engine *engine.ExecutionEngine) http.Handler
 	}
-	HandlerFactoryFn func(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler
+	HandlerFactoryFn func(logger *logging.Logger, engine *engine.ExecutionEngine) http.Handler
 )
 
-func (h HandlerFactoryFn) Make(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler {
+func (h HandlerFactoryFn) Make(logger *logging.Logger, engine *engine.ExecutionEngine) http.Handler {
 	return h(logger, engine)
 }
 
 func NewGraphqlHTTPHandler(
-	logger *monitoring.Logger,
+	logger *logging.Logger,
 	engine *engine.ExecutionEngine,
 ) http.Handler {
 	return &GraphQLHTTPHandler{

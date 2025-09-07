@@ -10,7 +10,7 @@ import (
 
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers/wsprotocol"
 )
 
@@ -24,9 +24,10 @@ type websocketResponseWriter struct {
 }
 
 var _ http.ResponseWriter = (*websocketResponseWriter)(nil)
+
 var _ resolve.SubscriptionResponseWriter = (*websocketResponseWriter)(nil)
 
-func newWebsocketResponseWriter(id string, protocol wsprotocol.Protocol, propagateErrors bool, logger *monitoring.Logger) *websocketResponseWriter {
+func newWebsocketResponseWriter(id string, protocol wsprotocol.Protocol, propagateErrors bool, logger *logging.Logger) *websocketResponseWriter {
 	return &websocketResponseWriter{
 		id:       id,
 		protocol: protocol,

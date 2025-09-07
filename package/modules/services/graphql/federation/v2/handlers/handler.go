@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
+
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/executor"
 	fwebsocket "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/handlers/websocket"
 )
@@ -20,13 +21,13 @@ const (
 )
 
 type FederationHandler struct {
-	log      *monitoring.Logger
+	log      *logging.Logger
 	executor *executor.Executor
 
 	wsHandler *fwebsocket.WebSocketFederationHandler
 }
 
-func NewFederationHandler(log *monitoring.Logger, executor *executor.Executor) *FederationHandler {
+func NewFederationHandler(log *logging.Logger, executor *executor.Executor) *FederationHandler {
 	return &FederationHandler{
 		log:      log,
 		executor: executor,

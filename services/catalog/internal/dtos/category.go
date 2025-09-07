@@ -1,10 +1,12 @@
 package dtos
 
 import (
+	"github.com/samber/lo"
+
 	"github.com/gianglt2198/federation-go/package/utils"
+
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
-	"github.com/samber/lo"
 )
 
 func ToCategoryEntity(category *ent.Category) (*model.CategoryEntity, error) {

@@ -34,6 +34,7 @@ type (
 )
 
 const SoftDeletedAtColumnName = "deleted_at"
+
 const SoftDeletedByColumnName = "deleted_by"
 
 func (SoftDeleteMixin) Fields() []ent.Field {

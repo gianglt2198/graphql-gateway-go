@@ -6,9 +6,9 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
-	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v1"
+	federation "github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v1"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/manager"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/v2/registry"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/server"
@@ -37,7 +37,7 @@ var FModuleV2 = fx.Module("federation-module-v2",
 
 func RegisterGraphQLServer(
 	Lifecycle fx.Lifecycle,
-	Log *monitoring.Logger,
+	Log *logging.Logger,
 	GraphQLService common.GraphqlServer,
 ) {
 	Lifecycle.Append(fx.Hook{

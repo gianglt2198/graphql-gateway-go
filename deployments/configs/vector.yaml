@@ -1,0 +1,28 @@
+sources:
+  nats_logging:
+    type: nats
+    connection_name: vector
+    subject: logging
+    url: nats://nats:4222
+
+transforms:
+  parse_nats_logging:
+    type: remap
+    inputs:
+      - nats_logging
+    source: |
+      . = parse_json!(string!(.message))
+
+sinks:
+  loki:
+    type: loki
+    inputs: ["parse_nats_logging"]
+    endpoint: http://loki:3100
+    encoding:
+      codec: json
+    compression: gzip
+    labels:
+      environment: "{{environment}}"
+      service: "{{service}}"
+      level: "{{level}}"
+    remove_timestamp: false

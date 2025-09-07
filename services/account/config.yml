@@ -14,11 +14,9 @@ database:
   ssl_mode: "disable"
   debug: true
 
-metrics:
-  enabled: false
-  port: 9093
-  path: "/metrics"
-  namespace: "federation"
+tracing:
+  enabled: true
+  endpoint: "localhost:4317"
 
 # NATS Configuration
 nats:

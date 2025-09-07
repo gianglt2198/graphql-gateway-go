@@ -31,6 +31,7 @@ type (
 )
 
 const CreateByColumnName = "created_by"
+
 const UpdatedByColumnName = "updated_by"
 
 func (AuthorMixin) Fields() []ent.Field {

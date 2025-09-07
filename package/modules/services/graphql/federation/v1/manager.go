@@ -18,7 +18,7 @@ import (
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
 
 	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	httpServer "github.com/gianglt2198/federation-go/package/modules/services/http/server"
 	"github.com/gianglt2198/federation-go/package/modules/services/http/transports"
@@ -30,7 +30,7 @@ type federationManager struct {
 	appConfig        config.AppConfig
 	federationConfig config.FederationConfig
 
-	logger *monitoring.Logger
+	logger *logging.Logger
 	mu     sync.RWMutex
 
 	handler        http.Handler
@@ -56,7 +56,7 @@ type FederationManager interface {
 type FederationManagerParams struct {
 	fx.In
 
-	Logger           *monitoring.Logger
+	Logger           *logging.Logger
 	AppConfig        config.AppConfig
 	FederationConfig config.FederationConfig
 	HTTPServer       httpServer.HTTPServer
@@ -81,7 +81,7 @@ func New(params FederationManagerParams) *federationManager {
 	go f.registry.Start(context.Background())
 
 	if f.federationConfig.Playground {
-		var handlerFactory HandlerFactoryFn = func(logger *monitoring.Logger, engine *engine.ExecutionEngine) http.Handler {
+		var handlerFactory HandlerFactoryFn = func(logger *logging.Logger, engine *engine.ExecutionEngine) http.Handler {
 			return NewGraphqlHTTPHandler(logger, engine)
 		}
 
@@ -155,7 +155,7 @@ func (f *federationManager) UpdateDataSources(subgraphsConfigs []engine.Subgraph
 	sdlHashed := utils.Hash(schemaBuilder.String())
 
 	if f.hash == sdlHashed {
-		f.logger.Debug("Schema is up-to-date!")
+		f.logger.GetWrappedLogger(ctx).Debug("Schema is up-to-date!")
 		return
 	}
 

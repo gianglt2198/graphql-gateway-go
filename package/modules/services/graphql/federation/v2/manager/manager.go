@@ -7,22 +7,21 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gofiber/contrib/websocket"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/wundergraph/cosmo/composition-go"
+	composition "github.com/wundergraph/cosmo/composition-go"
 	nodev1 "github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/node/v1"
 	routerCfg "github.com/wundergraph/cosmo/router/pkg/config"
+	"github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
 	"github.com/wundergraph/cosmo/router/pkg/statistics"
 
-	"github.com/wundergraph/cosmo/router/pkg/pubsub/datasource"
-
 	"github.com/gianglt2198/federation-go/package/config"
-	"github.com/gianglt2198/federation-go/package/infras/monitoring"
+	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/pubsub"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/common"
 	"github.com/gianglt2198/federation-go/package/modules/services/graphql/federation/types"
@@ -38,7 +37,7 @@ type federationManager struct {
 	appConfig        config.AppConfig
 	federationConfig config.FederationConfig
 
-	logger *monitoring.Logger
+	logger *logging.Logger
 	mu     sync.RWMutex
 
 	handler    types.FederationHandler
@@ -66,7 +65,7 @@ type FederationManager interface {
 type FederationManagerParams struct {
 	fx.In
 
-	Logger           *monitoring.Logger
+	Logger           *logging.Logger
 	AppConfig        config.AppConfig
 	FederationConfig config.FederationConfig
 	HTTPServer       httpServer.HTTPServer

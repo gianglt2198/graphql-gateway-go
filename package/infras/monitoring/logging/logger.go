@@ -1,4 +1,4 @@
-package monitoring
+package logging
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type Logger struct {
 }
 
 // NewLogger creates a new logger instance
-func NewLogger(config config.AppConfig) *Logger {
+func NewLogger(config config.AppConfig, natsConfg config.NATSConfig) *Logger {
 	var coreArr []zapcore.Core
 
 	// Log levels
@@ -32,6 +32,8 @@ func NewLogger(config config.AppConfig) *Logger {
 		return lev < zap.ErrorLevel && lev >= zap.DebugLevel
 	})
 
+	natsCore := NewNatsCore(natsConfg) // Replace with your NATS logging subject
+
 	if config.Environment == "development" {
 		encoderConfig := zap.NewProductionEncoderConfig()
 		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -40,7 +42,9 @@ func NewLogger(config config.AppConfig) *Logger {
 		infoLogCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), lowPriority)   // The third and subsequent parameters are the log levels for writing to the file. In ErrorLevel mode, only error - level logs are recorded.
 		errorLogCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), highPriority) // The third and subsequent parameters are the log levels for writing to the file. In ErrorLevel mode, only error - level logs are recorded.
 
-		coreArr = append(coreArr, infoLogCore, errorLogCore)
+		natsLogCore := zapcore.NewCore(encoder, natsCore, zapcore.InfoLevel)
+
+		coreArr = append(coreArr, infoLogCore, errorLogCore, natsLogCore)
 	} else {
 		encoderConfig := zap.NewProductionEncoderConfig()
 		encoder := zapcore.NewJSONEncoder(encoderConfig)
@@ -52,7 +56,7 @@ func NewLogger(config config.AppConfig) *Logger {
 	log := zap.New(zapcore.NewTee(coreArr...), zap.AddCaller(), zap.AddCallerSkip(1)) // zap.AddCaller() is used to display the file name and line number and can be omitted.
 	// defer log.Sync()
 
-	log.WithOptions()
+	log = log.With(zap.String("service", config.Name), zap.String("environment", config.Environment))
 	return &Logger{
 		serviceName: config.Name,
 		Logger:      log,
@@ -61,8 +65,14 @@ func NewLogger(config config.AppConfig) *Logger {
 
 func (l *Logger) GetLogger() *zap.Logger { return l.Logger }
 
-func (l *Logger) Debug(msg string, fields ...zap.Field) {
-	l.Logger.Debug(msg, fields...)
+type WrappedLogger struct {
+	*zap.Logger
+}
+
+func (l *Logger) GetWrappedLogger(ctx context.Context) *WrappedLogger {
+	return &WrappedLogger{
+		Logger: l.Logger.With(l.extractContext(ctx)...),
+	}
 }
 
 func (l *Logger) extractContext(ctx context.Context) []zap.Field {
@@ -95,21 +105,25 @@ func (l *Logger) extractContext(ctx context.Context) []zap.Field {
 	return fields
 }
 
-func (l *Logger) InfoC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Info(msg, append(fields, l.extractContext(ctx)...)...)
-}
+// func (l *Logger) Debug(msg string, fields ...zap.Field) {
+// 	l.Logger.Debug(msg, fields...)
+// }
 
-func (l *Logger) DebugC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Debug(msg, append(fields, l.extractContext(ctx)...)...)
-}
+// func (l *Logger) InfoC(ctx context.Context, msg string, fields ...zap.Field) {
+// 	l.Info(msg, append(fields, l.extractContext(ctx)...)...)
+// }
 
-func (l *Logger) WarnC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Warn(msg, append(fields, l.extractContext(ctx)...)...)
-}
+// func (l *Logger) DebugC(ctx context.Context, msg string, fields ...zap.Field) {
+// 	l.Debug(msg, append(fields, l.extractContext(ctx)...)...)
+// }
 
-func (l *Logger) ErrorC(ctx context.Context, msg string, fields ...zap.Field) {
-	l.Error(msg, append(fields, l.extractContext(ctx)...)...)
-}
+// func (l *Logger) WarnC(ctx context.Context, msg string, fields ...zap.Field) {
+// 	l.Warn(msg, append(fields, l.extractContext(ctx)...)...)
+// }
+
+// func (l *Logger) ErrorC(ctx context.Context, msg string, fields ...zap.Field) {
+// 	l.Error(msg, append(fields, l.extractContext(ctx)...)...)
+// }
 
 func (l *Logger) Fx() fxevent.Logger {
 	return &FxLogger{
