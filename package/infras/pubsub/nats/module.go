@@ -31,6 +31,10 @@ var Module = []fx.Option{
 				func(client *natsProvider) pubsub.QueueClient { return client },
 				fx.As(new(pubsub.QueueClient)),
 			),
+			fx.Annotate(
+				func(client *natsProvider) pubsub.Publisher { return client },
+				fx.As(new(pubsub.Publisher)),
+			),
 		),
 		fx.Invoke(func(lc fx.Lifecycle, client *natsProvider, logger *logging.Logger) {
 			if client == nil {
