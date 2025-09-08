@@ -16,14 +16,16 @@ type HTTPConfig struct {
 }
 
 type GraphQLConfig struct {
-	Enabled    bool `mapstructure:"enabled"`
-	Playground bool `mapstructure:"playground"`
+	Enabled    bool             `mapstructure:"enabled"`
+	Playground bool             `mapstructure:"playground"`
+	Complexity ComplexityConfig `mapstructure:"complexity"`
 }
 
 type FederationConfig struct {
 	Enabled    bool             `mapstructure:"enabled"`
 	Playground bool             `mapstructure:"playground"`
 	Subgraphs  []SubgraphConfig `mapstructure:"subgraphs" json:"subgraphs"`
+	Complexity ComplexityConfig `mapstructure:"complexity"`
 }
 
 type SubgraphConfig struct {
@@ -32,4 +34,9 @@ type SubgraphConfig struct {
 	Headers map[string]string `mapstructure:"headers" json:"headers"`
 	Timeout int               `mapstructure:"timeout" json:"timeout"`
 	Retries int               `mapstructure:"retries" json:"retries"`
+}
+
+type ComplexityConfig struct {
+	Enabled bool `yaml:"enabled,omitempty"`
+	Limit   int  `yaml:"limit,omitempty"`
 }

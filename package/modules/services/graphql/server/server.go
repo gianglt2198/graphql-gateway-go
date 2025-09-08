@@ -67,6 +67,10 @@ func New(params ServerParams) common.GraphqlServer {
 		return utils.RecoverFunc(ctx, err)
 	})
 
+	if params.ServerConfig.Complexity.Enabled {
+		exec.Use(extension.FixedComplexityLimit(params.ServerConfig.Complexity.Limit))
+	}
+
 	if params.ServerConfig.Playground {
 		app := params.HTTPServer.GetApp()
 
