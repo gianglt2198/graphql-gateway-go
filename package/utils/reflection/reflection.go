@@ -20,6 +20,18 @@ func CallFunctionWithValue[R any](fn any, args ...any) R {
 	return res[0].Interface().(R)
 }
 
+func CallFunctionWithError[R any](fn any, args ...any) (R, error) {
+	fnRef := reflect.ValueOf(fn)
+	argsVal := lo.Map(args, func(arg any, _ int) reflect.Value {
+		return reflect.ValueOf(arg)
+	})
+	res := fnRef.Call(argsVal)
+	if res[1].IsNil() {
+		return res[0].Interface().(R), nil
+	}
+	return lo.Empty[R](), res[1].Interface().(error)
+}
+
 func CallMethod(methodName string, caller any, args ...any) {
 	method := reflect.ValueOf(caller).MethodByName(methodName)
 	argVals := lo.Map(args, func(arg any, _ int) reflect.Value {

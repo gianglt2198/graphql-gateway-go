@@ -6,6 +6,7 @@ require (
 	entgo.io/contrib v0.6.0
 	entgo.io/ent v0.14.4
 	github.com/99designs/gqlgen v0.17.76
+	github.com/Khan/genqlient v0.8.1
 	github.com/exaring/otelpgx v0.9.3
 	github.com/gobwas/ws v1.4.0
 	github.com/gofiber/contrib/fiberzap/v2 v2.1.6
@@ -13,6 +14,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.8
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/hashicorp/golang-lru v0.5.4
+	github.com/hibiken/asynq v0.25.1
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/jensneuse/abstractlogger v0.0.4
 	github.com/jinzhu/copier v0.4.0
@@ -105,6 +107,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/r3labs/sse/v2 v2.8.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
@@ -137,6 +140,7 @@ require (
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect

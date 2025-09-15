@@ -9,10 +9,10 @@ import (
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/helpers"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
-	monitoring "github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring/tracing"
 	psnats "github.com/gianglt2198/federation-go/package/infras/pubsub/nats"
 	"github.com/gianglt2198/federation-go/package/infras/serdes"
+	"github.com/gianglt2198/federation-go/package/modules/queue"
 	graphqlservice "github.com/gianglt2198/federation-go/package/modules/services/graphql"
 	httpservice "github.com/gianglt2198/federation-go/package/modules/services/http"
 )
@@ -45,8 +45,9 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Supply(cfg.JWT),
 		fx.Supply(cfg.Encrypt),
 		fx.Supply(cfg.Tracing),
+		fx.Supply(cfg.Queue),
 		// Provide logger
-		fx.Provide(monitoring.NewLogger),
+		fx.Provide(logging.NewLogger),
 		// Provide JWT helper
 		fx.Provide(helpers.NewJWTHelper),
 		// Provide encryptor
@@ -65,6 +66,8 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 	coreModules = append(coreModules, httpservice.Module...)
 	// Provide Tracing Client
 	coreModules = append(coreModules, tracing.Module...)
+	// Provide Queue Client
+	coreModules = append(coreModules, queue.Module...)
 
 	// Provide SubGraphQL
 	if cfg.Servers.GraphQL.Enabled {

@@ -18,6 +18,7 @@ type Config[T any] struct {
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Encrypt  EncryptConfig  `mapstructure:"encrypt"`
 	Tracing  TracingConfig  `mapstructure:"tracing"`
+	Queue    QueueConfig    `mapstructure:"queue"`
 	Service  T              `mapstructure:"service"`
 }
 

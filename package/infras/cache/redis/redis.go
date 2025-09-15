@@ -1,4 +1,4 @@
-package redis
+package credis
 
 import (
 	"context"
@@ -71,7 +71,7 @@ func connect(
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		client.Close()
+		_ = client.Close()
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 
@@ -341,6 +341,10 @@ func (r *Redis) HealthCheck() func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		return r.Ping(ctx)
 	}
+}
+
+func (r *Redis) GetClient() *redis.Client {
+	return r.client
 }
 
 // redisIterator implements infras.Iterator for Redis SCAN
