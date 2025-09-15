@@ -13,6 +13,7 @@ import (
 	psnats "github.com/gianglt2198/federation-go/package/infras/pubsub/nats"
 	"github.com/gianglt2198/federation-go/package/infras/serdes"
 	"github.com/gianglt2198/federation-go/package/modules/queue"
+	"github.com/gianglt2198/federation-go/package/modules/scheduler"
 	graphqlservice "github.com/gianglt2198/federation-go/package/modules/services/graphql"
 	httpservice "github.com/gianglt2198/federation-go/package/modules/services/http"
 )
@@ -46,6 +47,7 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Supply(cfg.Encrypt),
 		fx.Supply(cfg.Tracing),
 		fx.Supply(cfg.Queue),
+		fx.Supply(cfg.Scheduler),
 		// Provide logger
 		fx.Provide(logging.NewLogger),
 		// Provide JWT helper
@@ -68,6 +70,8 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 	coreModules = append(coreModules, tracing.Module...)
 	// Provide Queue Client
 	coreModules = append(coreModules, queue.Module...)
+	// Provide Scheduler Client
+	coreModules = append(coreModules, scheduler.Module...)
 
 	// Provide SubGraphQL
 	if cfg.Servers.GraphQL.Enabled {

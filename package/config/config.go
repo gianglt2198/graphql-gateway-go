@@ -9,17 +9,18 @@ import (
 
 // Config holds the configuration for all services
 type Config[T any] struct {
-	App      AppConfig      `mapstructure:"app"`
-	Servers  ServerConfig   `mapstructure:"servers"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	NATS     NATSConfig     `mapstructure:"nats"`
-	ETCD     ETCDConfig     `mapstructure:"etcd"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Encrypt  EncryptConfig  `mapstructure:"encrypt"`
-	Tracing  TracingConfig  `mapstructure:"tracing"`
-	Queue    QueueConfig    `mapstructure:"queue"`
-	Service  T              `mapstructure:"service"`
+	App       AppConfig       `mapstructure:"app"`
+	Servers   ServerConfig    `mapstructure:"servers"`
+	Database  DatabaseConfig  `mapstructure:"database"`
+	Redis     RedisConfig     `mapstructure:"redis"`
+	NATS      NATSConfig      `mapstructure:"nats"`
+	ETCD      ETCDConfig      `mapstructure:"etcd"`
+	JWT       JWTConfig       `mapstructure:"jwt"`
+	Encrypt   EncryptConfig   `mapstructure:"encrypt"`
+	Tracing   TracingConfig   `mapstructure:"tracing"`
+	Queue     QueueConfig     `mapstructure:"queue"`
+	Scheduler SchedulerConfig `mapstructure:"scheduler"`
+	Service   T               `mapstructure:"service"`
 }
 
 // AppConfig holds application-specific configuration
