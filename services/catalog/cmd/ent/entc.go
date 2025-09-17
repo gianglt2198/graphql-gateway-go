@@ -20,12 +20,15 @@ func main() {
 		entgql.WithSchemaGenerator(),
 		entgql.WithConfigPath("./gqlgen.yml"),
 		entgql.WithRelaySpec(true),
-		entgql.WithSchemaHook(graphql.RemoveNodeQueries,
+		entgql.WithSchemaPath("./graphql/schema/schema.gql"),
+		entgql.WithSchemaHook(
+			graphql.RemoveNodeQueries,
 			graphql.RemoveMutationInput,
 			graphql.RemoveEntitiesImplementingNode,
 			graphql.RemoveEntitiesImplementingOrder,
 			// graphql.RemoveEntitiesImplementingConnection,
 		),
+		entgql.WithNodeDescriptor(true),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)
@@ -36,7 +39,7 @@ func main() {
 	}
 
 	templates := entgql.AllTemplates
-	templates = append(templates, db.PNNIDTemplate)
+	templates = append(templates, db.PNNIDTemplate, db.EdgeTemplate)
 
 	moduleName, err := utils.GetModuleName()
 	if err != nil {

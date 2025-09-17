@@ -21,15 +21,15 @@ type Scheduler struct {
 type SchedulerParams struct {
 	fx.In
 
-	AppConfig config.AppConfig
-	Scheduler config.SchedulerConfig
+	AppConfig       config.AppConfig
+	SchedulerConfig config.SchedulerConfig
 
 	Logger *logging.Logger
 	Redis  *credis.Redis
 }
 
 func NewScheduler(params SchedulerParams) *Scheduler {
-	if !params.Scheduler.Enabled {
+	if !params.SchedulerConfig.Enabled {
 		return nil
 	}
 
@@ -57,6 +57,10 @@ func Schedule(cronspec string, task *queue.Task) Schedulable {
 func Run(log *logging.Logger, lifecycle fx.Lifecycle, scheduler *Scheduler) {
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			if scheduler == nil {
+				return nil
+			}
+
 			log.Info("[OnStart] Scheduler running.....")
 			errChan := make(chan error)
 			go func() {

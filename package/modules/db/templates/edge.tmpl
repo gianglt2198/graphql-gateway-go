@@ -1,0 +1,11 @@
+{{ define "edges/constants" }}
+package edges
+const (
+{{ range .Nodes }}
+    {{ $entity := . }}
+    {{ range .Edges }}
+         {{ $entity.Name }}Named{{ pascal .Name }} = "{{ camel .Name }}"
+    {{ end }}
+{{ end }}
+)
+{{ end }}

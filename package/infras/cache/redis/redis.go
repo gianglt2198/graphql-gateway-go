@@ -52,6 +52,9 @@ func connect(
 	appConfig config.AppConfig,
 	redisConfig config.RedisConfig,
 	logger *logging.Logger) *Redis {
+	if !redisConfig.Enabled {
+		return nil
+	}
 	// Create Redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:         fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port),

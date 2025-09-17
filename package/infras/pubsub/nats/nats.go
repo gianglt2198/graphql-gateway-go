@@ -45,18 +45,20 @@ var _ pubsub.Broker = (*natsProvider)(nil)
 type NatsParams struct {
 	fx.In
 
-	Log      *logging.Logger
-	Config   config.NATSConfig
+	Log           *logging.Logger
+	Config        config.NATSConfig
+	TracingConfig config.TracingConfig
+
 	SeqModel serdes.Serializer
 }
 
 func New(params NatsParams) *natsProvider {
-	provider := connect(params.Log, params.Config)
+	provider := connect(params.Log, params.Config, params.TracingConfig)
 	provider.factory = NewMessageFactory(provider, params.SeqModel)
 	return provider
 }
 
-func connect(log *logging.Logger, cfg config.NATSConfig) *natsProvider {
+func connect(log *logging.Logger, cfg config.NATSConfig, tracingCfg config.TracingConfig) *natsProvider {
 	if !cfg.Enabled {
 		return nil
 	}
@@ -84,15 +86,19 @@ func connect(log *logging.Logger, cfg config.NATSConfig) *natsProvider {
 		log.GetLogger().Panic("Connection error %s", zap.Error(err))
 	}
 
+	middlewares := []NatsMiddleware{}
+
+	if tracingCfg.Enabled {
+		middlewares = append(middlewares, tcnats.OperationMiddleware)
+	}
+
 	return &natsProvider{
 		cfg:           cfg,
 		nc:            nc,
 		log:           log,
 		subscriptions: make(map[string]*nats.Subscription),
 		chans:         make(map[string]chan *nats.Msg),
-		middlewares: []NatsMiddleware{
-			tcnats.OperationMiddleware,
-		},
+		middlewares:   middlewares,
 	}
 }
 

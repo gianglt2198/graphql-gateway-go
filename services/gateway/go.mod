@@ -1,6 +1,6 @@
 module github.com/gianglt2198/federation-go/services/gateway
 
-go 1.24.1
+go 1.25.1
 
 replace github.com/gianglt2198/federation-go/package => ../../package
 

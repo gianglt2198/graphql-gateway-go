@@ -6,7 +6,6 @@ import (
 	"io"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/jensneuse/abstractlogger"
 
 	"github.com/wundergraph/graphql-go-tools/execution/graphql"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/apollocompatibility"
@@ -15,7 +14,6 @@ import (
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/astprinter"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/plan"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/engine/resolve"
-	"github.com/wundergraph/graphql-go-tools/v2/pkg/middleware/operation_complexity"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/operationreport"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/pool"
 	"github.com/wundergraph/graphql-go-tools/v2/pkg/variablesvalidation"
@@ -126,11 +124,10 @@ func (e *Executor) getCachedPlan(ctx *internalExecutionContext, operation, defin
 		}
 	}
 
-	globalComplexityResult, rootFieldStats := operation_complexity.CalculateOperationComplexity(operation, definition, report)
-
 	// TODO: Handle global complexity result
-	e.PlanConfig.Logger.Info("globalComplexityResult", abstractlogger.Any("globalComplexityResult", globalComplexityResult))
-	e.PlanConfig.Logger.Info("rootFieldStats", abstractlogger.Any("rootFieldStats", rootFieldStats))
+	// globalComplexityResult, rootFieldStats := operation_complexity.CalculateOperationComplexity(operation, definition, report)
+	// e.PlanConfig.Logger.Info("globalComplexityResult", abstractlogger.Any("globalComplexityResult", globalComplexityResult))
+	// e.PlanConfig.Logger.Info("rootFieldStats", abstractlogger.Any("rootFieldStats", rootFieldStats))
 
 	planner, _ := plan.NewPlanner(e.PlanConfig)
 	planResult := planner.Plan(operation, definition, operationName, report)

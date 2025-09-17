@@ -35,8 +35,9 @@ type HttpServerStartHook fx.Hook
 type HTTPServerParams struct {
 	fx.In
 
-	AppConfig    config.AppConfig
-	ServerConfig config.HTTPConfig
+	AppConfig     config.AppConfig
+	ServerConfig  config.HTTPConfig
+	TracingConfig config.TracingConfig
 
 	Logger *logging.Logger
 }
@@ -50,16 +51,19 @@ func New(params HTTPServerParams) HTTPServer {
 	app := createFiberApp(params.Logger)
 	app.Use(tcfiber.RequestIDMiddleware)
 	app.Use(tcfiber.LoggerMiddleware(params.Logger))
-	app.Use(tcfiber.TracingMiddleware("main", "request_caller",
-		tcfiber.TracingConfig{
-			ServiceName:    params.AppConfig.Name,
-			ServiceVersion: "1.0.0",
-		}))
-	app.Use(tcfiber.MetricMiddleware(
-		tcfiber.MetricConfig{
-			ServiceName:    params.AppConfig.Name,
-			ServiceVersion: "1.0.0",
-		}))
+	if params.TracingConfig.Enabled {
+		app.Use(tcfiber.TracingMiddleware("main", "request_caller",
+			tcfiber.TracingConfig{
+				ServiceName:    params.AppConfig.Name,
+				ServiceVersion: "1.0.0",
+			}))
+		app.Use(tcfiber.MetricMiddleware(
+			tcfiber.MetricConfig{
+				ServiceName:    params.AppConfig.Name,
+				ServiceVersion: "1.0.0",
+			}))
+
+	}
 
 	return &httpServer{
 		appConfig:    params.AppConfig,

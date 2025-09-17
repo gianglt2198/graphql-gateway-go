@@ -10,6 +10,7 @@ exec:
 federation:
   package: generated
   filename: generated/graph/generated/federation.go
+  version: 2
 
 model:
   filename: generated/graph/model/model_gen.go

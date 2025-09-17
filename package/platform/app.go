@@ -8,6 +8,7 @@ import (
 
 	"github.com/gianglt2198/federation-go/package/config"
 	"github.com/gianglt2198/federation-go/package/helpers"
+	credis "github.com/gianglt2198/federation-go/package/infras/cache/redis"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/infras/monitoring/tracing"
 	psnats "github.com/gianglt2198/federation-go/package/infras/pubsub/nats"
@@ -46,6 +47,7 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 		fx.Supply(cfg.JWT),
 		fx.Supply(cfg.Encrypt),
 		fx.Supply(cfg.Tracing),
+		fx.Supply(cfg.Redis),
 		fx.Supply(cfg.Queue),
 		fx.Supply(cfg.Scheduler),
 		// Provide logger
@@ -68,6 +70,8 @@ func NewApp[T any](cfg *config.Config[T], modules ...fx.Option) App {
 	coreModules = append(coreModules, httpservice.Module...)
 	// Provide Tracing Client
 	coreModules = append(coreModules, tracing.Module...)
+	// Provide Redis Client
+	coreModules = append(coreModules, credis.Module...)
 	// Provide Queue Client
 	coreModules = append(coreModules, queue.Module...)
 	// Provide Scheduler Client

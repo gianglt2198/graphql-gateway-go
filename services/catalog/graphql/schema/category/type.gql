@@ -1,30 +1,49 @@
-type CategoryPaginatedConnection {
-  edges: [CategoryPaginatedEdge]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
+# type CategoryPaginatedConnection {
+#   edges: [CategoryPaginatedEdge]
+#   pageInfo: PageInfo
+#   totalCount: Int
+# }
 
-type CategoryPaginatedEdge {
-  node: CategoryEntity
-  cursor: Cursor!
-}
+# type CategoryPaginatedEdge {
+#   node: CategoryEntity
+#   cursor: Cursor
+# }
 
-type CategoryEntity implements Node @key(fields: "id") {
+# type CategoryEntity implements Node @key(fields: "id") {
+#   id: ID!
+#   createdAt: Time
+#   createdBy: String
+#   userCreatedBy: UserEntity
+#   updatedAt: Time
+#   updatedBy: String
+#   userUpdatedBy: UserEntity
+#   name: String
+#   description: String
+#   products(
+#     after: Cursor
+#     first: Int
+#     before: Cursor
+#     last: Int
+#     orderBy: [ProductOrder!]
+#     filter: ProductFilter
+#   ): ProductPaginatedConnection!
+# }
+
+type Category implements Node {
   id: ID!
-  createdAt: Time
-  createdBy: String
-  userCreatedBy: UserEntity
-  updatedAt: Time
-  updatedBy: String
-  userUpdatedBy: UserEntity
   name: String
   description: String
+  createdAt: Time
+  createdBy: String
+  updatedAt: Time
+  updatedBy: String
+  userCreatedBy: UserEntity
+  userUpdatedBy: UserEntity
   products(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
     orderBy: [ProductOrder!]
-    filter: ProductFilter
-  ): ProductPaginatedConnection!
+  ): ProductConnection
 }

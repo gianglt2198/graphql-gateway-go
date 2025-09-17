@@ -1,21 +1,41 @@
-type ProductPaginatedConnection {
-  edges: [ProductPaginatedEdge]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
+# type ProductPaginatedConnection {
+#   edges: [ProductPaginatedEdge]
+#   pageInfo: PageInfo
+#   totalCount: Int
+# }
 
-type ProductPaginatedEdge {
-  """
-  The item at the end of the edge.
-  """
-  node: ProductEntity
-  """
-  A cursor for use in pagination.
-  """
-  cursor: Cursor!
-}
+# type ProductPaginatedEdge {
+#   """
+#   The item at the end of the edge.
+#   """
+#   node: ProductEntity
+#   """
+#   A cursor for use in pagination.
+#   """
+#   cursor: Cursor
+# }
 
-type ProductEntity implements Node @key(fields: "id") {
+# type ProductEntity implements Node @key(fields: "id") {
+#   id: ID!
+#   createdAt: Time
+#   createdBy: String
+#   updatedAt: Time
+#   updatedBy: String
+#   name: String
+#   description: String
+#   price: Float
+#   stock: Int
+#   categories(
+#     after: Cursor
+#     first: Int
+#     before: Cursor
+#     last: Int
+#     orderBy: [CategoryOrder!]
+#     filter: CategoryFilter
+#   ): CategoryPaginatedConnection
+# }
+
+type Product implements Node {
   id: ID!
   createdAt: Time
   createdBy: String
@@ -31,6 +51,5 @@ type ProductEntity implements Node @key(fields: "id") {
     before: Cursor
     last: Int
     orderBy: [CategoryOrder!]
-    filter: CategoryFilter
-  ): CategoryPaginatedConnection!
+  ): CategoryConnection
 }

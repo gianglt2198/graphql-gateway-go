@@ -206,7 +206,13 @@ func (f *federationManager) UpdateDataSources(subgraphsConfigs []*composition.Su
 				},
 			},
 		},
-		SubgraphErrorPropagation: routerCfg.SubgraphErrorPropagationConfiguration{},
+		SubgraphErrorPropagation: routerCfg.SubgraphErrorPropagationConfiguration{
+			Enabled:                 true,
+			AllowAllExtensionFields: true,
+			// AllowedErrorExtensionFields: []string{"code", "request_id", "stack_trace"},
+			Mode:         routerCfg.SubgraphErrorPropagationModePassthrough,
+			RewritePaths: true,
+		},
 	}
 
 	engineStats := statistics.NewNoopEngineStats()

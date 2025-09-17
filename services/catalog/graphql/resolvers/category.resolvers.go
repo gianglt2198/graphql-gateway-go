@@ -2,26 +2,21 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entgql"
 
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
+	"github.com/samber/lo"
 )
 
-// FindCategoryEntityByID is the resolver for the findCategoryEntityByID field.
-func (r *entityResolver) FindCategoryEntityByID(ctx context.Context, id string) (*model.CategoryEntity, error) {
-	panic(fmt.Errorf("not implemented: FindCategoryEntityByID - findCategoryEntityByID"))
-}
-
 // Category is the resolver for the category field.
-func (r *queryResolver) Category(ctx context.Context, id string) (*model.CategoryEntity, error) {
+func (r *queryResolver) Category(ctx context.Context, id string) (*ent.Category, error) {
 	return r.categoryService.FindCategoryByID(ctx, id)
 }
 
 // Categories is the resolver for the categories field.
-func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *model.CategoryFilter) (*model.CategoryPaginatedConnection, error) {
+func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *model.CategoryFilter) (*ent.CategoryConnection, error) {
 	return r.categoryService.FindCategories(ctx, after, first, before, last, orderBy, where)
 }
 
@@ -50,4 +45,19 @@ func (r *mutationResolver) CatalogDeleteCategory(ctx context.Context, id string)
 		return false, err
 	}
 	return true, nil
+}
+
+// Category is the resolver for the category field.
+func (r *categoryResolver) UserCreatedBy(ctx context.Context, obj *ent.Category) (*model.UserEntity, error) {
+	if obj.CreatedBy != nil {
+		return &model.UserEntity{ID: lo.FromPtr(obj.CreatedBy)}, nil
+	}
+	return nil, nil
+}
+
+func (r *categoryResolver) UserUpdatedBy(ctx context.Context, obj *ent.Category) (*model.UserEntity, error) {
+	if obj.UpdatedBy != nil {
+		return &model.UserEntity{ID: lo.FromPtr(obj.UpdatedBy)}, nil
+	}
+	return nil, nil
 }

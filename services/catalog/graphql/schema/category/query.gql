@@ -1,5 +1,5 @@
 extend type Query {
-  category(id: ID!): CategoryEntity!
+  category(id: ID!): Category!
 
   categories(
     after: Cursor
@@ -8,5 +8,5 @@ extend type Query {
     last: Int
     orderBy: [CategoryOrder!]
     where: CategoryFilter
-  ): CategoryPaginatedConnection!
+  ): CategoryConnection!
 }

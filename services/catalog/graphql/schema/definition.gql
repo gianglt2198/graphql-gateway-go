@@ -1,68 +1,7 @@
-directive @goField(
-  forceResolver: Boolean
-  name: String
-  omittable: Boolean
-) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
-directive @goModel(
-  model: String
-  models: [String!]
-  forceGenerate: Boolean
-) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 """
 Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
-scalar Cursor
-scalar Time
-"""
-An object with an ID.
-Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
-"""
-interface Node
-  @goModel(
-    model: "github.com/gianglt2198/federation-go/package/modules/db.Noder"
-  ) {
-  """
-  The id of the object.
-  """
-  id: ID!
-}
-"""
-Possible directions in which to order a list of items when provided an `orderBy` argument.
-"""
-enum OrderDirection {
-  """
-  Specifies an ascending order for a given `orderBy` argument.
-  """
-  ASC
-  """
-  Specifies a descending order for a given `orderBy` argument.
-  """
-  DESC
-}
-"""
-Information about pagination in a connection.
-https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
-"""
-type PageInfo {
-  """
-  When paginating forwards, are there more items?
-  """
-  hasNextPage: Boolean!
-  """
-  When paginating backwards, are there more items?
-  """
-  hasPreviousPage: Boolean!
-  """
-  When paginating backwards, the cursor to continue.
-  """
-  startCursor: Cursor
-  """
-  When paginating forwards, the cursor to continue.
-  """
-  endCursor: Cursor
-}
-
 type Query {
   """
   Fetches an object given its ID.

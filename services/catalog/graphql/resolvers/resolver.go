@@ -40,7 +40,8 @@ func NewResolver(params ResolverParams) graphql.ExecutableSchema {
 type (
 	queryResolver    struct{ *Resolver }
 	mutationResolver struct{ *Resolver }
-	entityResolver   struct{ *Resolver }
+
+	categoryResolver struct{ *Resolver }
 )
 
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
@@ -49,4 +50,6 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Entity returns generated.EntityResolver implementation.
-func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
+// func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
+
+func (r *Resolver) Category() generated.CategoryResolver { return &categoryResolver{r} }

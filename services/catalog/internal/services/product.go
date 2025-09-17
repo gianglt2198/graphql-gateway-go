@@ -14,7 +14,6 @@ import (
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/category"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/ent/product"
 	"github.com/gianglt2198/federation-go/services/catalog/generated/graph/model"
-	"github.com/gianglt2198/federation-go/services/catalog/internal/dtos"
 	"github.com/gianglt2198/federation-go/services/catalog/internal/repos"
 )
 
@@ -26,8 +25,8 @@ type (
 	}
 
 	ProductService interface {
-		FindProductByID(ctx context.Context, id string) (*model.ProductEntity, error)
-		FindProducts(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.ProductOrder, where *model.ProductFilter) (*model.ProductPaginatedConnection, error)
+		FindProductByID(ctx context.Context, id string) (*ent.Product, error)
+		FindProducts(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.ProductOrder, where *model.ProductFilter) (*ent.ProductConnection, error)
 
 		CreateProduct(ctx context.Context, product ent.CreateProductInput) (*ent.Product, error)
 		UpdateProduct(ctx context.Context, id string, product ent.UpdateProductInput) (*ent.Product, error)
@@ -58,16 +57,11 @@ func NewProductService(params ProductServiceParams) ProductServiceResult {
 	}
 }
 
-func (s *productService) FindProductByID(ctx context.Context, id string) (*model.ProductEntity, error) {
-	product, err := s.productRepository.FindOneWithPredicates(ctx, s.productRepository.WithCollectFields(ctx), product.IDEQ(id))
-	if err != nil {
-		return nil, err
-	}
-
-	return dtos.ToProductEntity(product)
+func (s *productService) FindProductByID(ctx context.Context, id string) (*ent.Product, error) {
+	return s.productRepository.FindOneWithPredicates(ctx, s.productRepository.WithCollectFields(ctx), product.IDEQ(id))
 }
 
-func (s *productService) FindProducts(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.ProductOrder, where *model.ProductFilter) (*model.ProductPaginatedConnection, error) {
+func (s *productService) FindProducts(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.ProductOrder, where *model.ProductFilter) (*ent.ProductConnection, error) {
 	filter := func(q *ent.ProductQuery) (*ent.ProductQuery, error) {
 		if where != nil {
 			if len(where.Ids) > 0 {
@@ -83,38 +77,7 @@ func (s *productService) FindProducts(ctx context.Context, after *entgql.Cursor[
 		return q, nil
 	}
 
-	products, err := s.productRepository.Query(ctx).Paginate(ctx, after, first, before, last, ent.WithProductOrder(orderBy), ent.WithProductFilter(filter))
-	if err != nil {
-		return nil, err
-	}
-
-	products.PageInfo = entgql.PageInfo[string]{
-		HasNextPage:     products.PageInfo.HasNextPage,
-		HasPreviousPage: products.PageInfo.HasPreviousPage,
-		StartCursor:     products.PageInfo.StartCursor,
-		EndCursor:       products.PageInfo.EndCursor,
-	}
-
-	list := make([]*model.ProductPaginatedEdge, len(products.Edges))
-	for i, edge := range products.Edges {
-		product := edge.Node
-
-		productEntity, err := utils.StructToStruct[ent.Product, model.ProductEntity](product)
-		if err != nil {
-			return nil, err
-		}
-
-		list[i] = &model.ProductPaginatedEdge{
-			Cursor: edge.Cursor,
-			Node:   productEntity,
-		}
-	}
-
-	return &model.ProductPaginatedConnection{
-		Edges:      list,
-		PageInfo:   lo.ToPtr(products.PageInfo),
-		TotalCount: products.TotalCount,
-	}, nil
+	return s.productRepository.Query(ctx).Paginate(ctx, after, first, before, last, ent.WithProductOrder(orderBy), ent.WithProductFilter(filter))
 }
 
 func (s *productService) CreateProduct(ctx context.Context, product ent.CreateProductInput) (*ent.Product, error) {

@@ -1,6 +1,6 @@
 module github.com/gianglt2198/federation-go/package
 
-go 1.24.1
+go 1.25.1
 
 require (
 	entgo.io/contrib v0.6.0

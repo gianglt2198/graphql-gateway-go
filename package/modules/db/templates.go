@@ -23,6 +23,9 @@ var (
 
 	// Repository Template
 	RepositoryTemplate = gen.MustParse(gen.NewTemplate("repository.tmpl").ParseFS(templates, "templates/repository.tmpl"))
+
+	// Edge Template
+	EdgeTemplate = gen.MustParse(gen.NewTemplate("edge.tmpl").ParseFS(templates, "templates/edge.tmpl"))
 )
 
 func RepositoryExtention() entc.Option {

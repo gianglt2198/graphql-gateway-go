@@ -15,7 +15,7 @@ database:
   debug: true
 
 tracing:
-  enabled: true
+  enabled: false
   endpoint: "localhost:4317"
 
 # NATS Configuration
