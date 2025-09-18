@@ -8,6 +8,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+func (l *Logger) Fx() fxevent.Logger {
+	return &FxLogger{
+		Logger: l.Logger,
+	}
+}
+
 // FxLogger is an Fx event logger that logs events to Zap.
 type FxLogger struct {
 	Logger *zap.Logger
@@ -196,4 +202,18 @@ func (l *FxLogger) LogEvent(event fxevent.Event) {
 			l.logEvent("initialized custom fxevent.Logger", zap.String("function", e.ConstructorName))
 		}
 	}
+}
+
+func moduleField(name string) zap.Field {
+	if len(name) == 0 {
+		return zap.Skip()
+	}
+	return zap.String("module", name)
+}
+
+func maybeBool(name string, b bool) zap.Field {
+	if b {
+		return zap.Bool(name, true)
+	}
+	return zap.Skip()
 }

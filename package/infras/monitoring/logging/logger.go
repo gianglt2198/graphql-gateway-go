@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -23,37 +22,29 @@ type Logger struct {
 func NewLogger(config config.AppConfig, natsConfg config.NATSConfig) *Logger {
 	var coreArr []zapcore.Core
 
-	// Log levels
-	highPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool { // Error level
-		return lev >= zap.ErrorLevel
-	})
-	lowPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool { // Info and debug levels, debug level is the lowest
-		return lev < zap.ErrorLevel && lev >= zap.DebugLevel
-	})
-
-	natsCore := NewNatsCore(natsConfg) // Replace with your NATS logging subject
-
-	if config.Environment == "development" {
+	if config.Environment == "production" {
 		encoderConfig := zap.NewProductionEncoderConfig()
 		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 		encoder := zapcore.NewJSONEncoder(encoderConfig)
 
-		infoLogCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), lowPriority)   // The third and subsequent parameters are the log levels for writing to the file. In ErrorLevel mode, only error - level logs are recorded.
-		errorLogCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), highPriority) // The third and subsequent parameters are the log levels for writing to the file. In ErrorLevel mode, only error - level logs are recorded.
-
-		natsLogCore := zapcore.NewCore(encoder, natsCore, zapcore.InfoLevel)
-
-		coreArr = append(coreArr, infoLogCore, errorLogCore, natsLogCore)
+		if natsConfg.Enabled {
+			natsCore := NewNatsCore(natsConfg) // Replace with your NATS logging subject
+			natsLogCore := zapcore.NewCore(encoder, natsCore, zapcore.ErrorLevel)
+			coreArr = append(coreArr, natsLogCore)
+		} else {
+			consoleCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), zapcore.ErrorLevel)
+			coreArr = append(coreArr, consoleCore)
+		}
 	} else {
 		encoderConfig := zap.NewProductionEncoderConfig()
 		encoder := zapcore.NewJSONEncoder(encoderConfig)
-		consoleCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdin)), zapcore.InfoLevel) // The third and subsequent parameters are the log levels for writing to the file. In ErrorLevel mode, only error - level logs are recorded.
+		consoleCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), zapcore.InfoLevel) // The third and subsequent parameters are the log levels for writing to the file. In ErrorLevel mode, only error - level logs are recorded.
 
 		coreArr = append(coreArr, consoleCore)
 	}
 
-	log := zap.New(zapcore.NewTee(coreArr...), zap.AddCaller(), zap.AddCallerSkip(1)) // zap.AddCaller() is used to display the file name and line number and can be omitted.
-	// defer log.Sync()
+	log := zap.New(zapcore.NewTee(coreArr...), zap.AddCaller()) // zap.AddCaller() is used to display the file name and line number and can be omitted.
+	defer func() { _ = log.Sync() }()
 
 	log = log.With(zap.String("service", config.Name), zap.String("environment", config.Environment))
 	return &Logger{
@@ -102,24 +93,4 @@ func (l *Logger) extractContext(ctx context.Context) []zap.Field {
 	}
 
 	return fields
-}
-
-func (l *Logger) Fx() fxevent.Logger {
-	return &FxLogger{
-		Logger: l.Logger,
-	}
-}
-
-func moduleField(name string) zap.Field {
-	if len(name) == 0 {
-		return zap.Skip()
-	}
-	return zap.String("module", name)
-}
-
-func maybeBool(name string, b bool) zap.Field {
-	if b {
-		return zap.Bool(name, true)
-	}
-	return zap.Skip()
 }

@@ -50,13 +50,6 @@ func (f *messageFactory) NewMessage(ctx context.Context, pattern string, in any,
 		return nil, err
 	}
 
-	// for _, model := range f.serdesModels {
-	// 	data, err = model.Encode(in)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	msg.Data = data
 	return msg, nil
 }
@@ -68,14 +61,6 @@ func (f *messageFactory) ReadMessage(msg *nats.Msg) ([]byte, error) {
 	)
 
 	in := msg.Data
-
-	// for i := len(f.serdesModels) - 1; i == 0; i++ {
-	// 	err = f.serdesModels[i].Decode(in, data)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	in = data
-	// }
 
 	err = f.serdesModel.Decode(in, &data)
 	if err != nil {
