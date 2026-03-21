@@ -1,4 +1,3 @@
-
 # 🚀 GraphQL Federation in Go
 
 <div align="center">
@@ -83,6 +82,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 ## ✨ Features
 
 ### 🏗️ Federation Architecture
+
 - **GraphQL Federation v2** — Full support for `@key`, `@external`, `@requires`, `@provides`, `@shareable`, and `@link` directives
 - **Dynamic Subgraph Registry** — Runtime registration and management of subgraph services
 - **Automatic Schema Composition** — Supergraph generated dynamically from subgraph introspection
@@ -90,6 +90,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Parallel Query Execution** — Independent subgraph queries execute concurrently
 
 ### 🔐 Account Service
+
 - **User Management** — Full CRUD with relay-style cursor pagination
 - **Authentication** — Register, Login, Logout, and JWT token verification
 - **Session Management** — Token-based session tracking with `last_used_at` tracking
@@ -97,6 +98,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Schema-First** — All types defined in GraphQL SDL with `gqlgen`
 
 ### 🛍️ Catalog Service
+
 - **Product Management** — Full CRUD with name, description, price, and stock
 - **Category Management** — Hierarchical product categorization
 - **Many-to-Many Relations** — Products ↔ Categories with cascade delete
@@ -104,6 +106,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Cross-Service Entity** — References `UserEntity` from the Account service via federation keys
 
 ### 🔄 Event-Driven Federated Subscriptions (EDFS)
+
 - **Declarative Events** — Events defined directly in GraphQL schema via directives (`@edfs_Subscribe`, `@edfs_Publish`, `@edfs_Request`)
 - **Zero Boilerplate** — No manual event publishing code in resolvers
 - **NATS Integration** — Real-time event streaming over NATS message broker
@@ -112,6 +115,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Federation-Ready** — Events automatically include federation keys for entity resolution
 
 ### ⚡ Performance & Reliability
+
 - **Circuit Breakers** — Fault tolerance to prevent cascading failures across subgraphs
 - **Connection Pooling** — Optimized HTTP client pool for inter-service communication
 - **DataLoader Pattern** — Batching entity resolution requests to eliminate N+1 queries
@@ -120,6 +124,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Graceful Shutdown** — Proper lifecycle management via Uber FX hooks
 
 ### 🗄️ Database & Migrations
+
 - **Ent ORM** — Type-safe, code-generated database access layer
 - **Atlas CLI Migrations** — Versioned SQL migration files with rollback support
 - **Auto-generated Repositories** — Repository pattern generated from Ent schema templates
@@ -127,6 +132,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Author Mixin** — Automatic `created_by` / `updated_by` tracking on all entities
 
 ### 🔍 Observability Stack
+
 - **Structured Logging** — Uber Zap with log forwarding via NATS → Vector → Loki
 - **Distributed Tracing** — OpenTelemetry → OTLP Collector → Grafana Tempo
 - **Metrics** — Prometheus scraping with Redis cache hit/miss counters, request latency
@@ -134,6 +140,7 @@ This project is designed as a showcase of modern Go backend engineering — comb
 - **Health Endpoints** — `/health`, `/health/live`, `/health/ready` on every service
 
 ### 🧰 Developer Experience
+
 - **Hot Reload** — `air` live-reloading for all services during development
 - **GraphQL Playground** — Embedded IDE at `/playground` for every service
 - **Code Generation** — Single `make generate` regenerates GraphQL resolvers and Ent models
@@ -143,25 +150,25 @@ This project is designed as a showcase of modern Go backend engineering — comb
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-|---|---|
-| **Language** | Go 1.24+ |
-| **GraphQL** | [gqlgen](https://gqlgen.com/) — schema-first code generation |
-| **Federation Engine** | [wundergraph/graphql-go-tools v2](https://github.com/wundergraph/graphql-go-tools) |
-| **ORM** | [Ent](https://entgo.io/) — entity framework with code generation |
-| **Dependency Injection** | [Uber FX](https://github.com/uber-go/fx) |
-| **Messaging** | [NATS](https://nats.io/) — cloud-native pub/sub |
-| **Service Discovery** | [etcd](https://etcd.io/) — distributed key-value store |
-| **Caching** | [Redis](https://redis.io/) |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) |
-| **Migrations** | [Atlas CLI](https://atlasgo.io/) |
-| **Logging** | [Uber Zap](https://github.com/uber-go/zap) + Loki + Vector |
-| **Tracing** | OpenTelemetry + Grafana Tempo |
-| **Metrics** | Prometheus + Grafana |
-| **HTTP Framework** | [Fiber](https://gofiber.io/) |
-| **Containerization** | Docker + Docker Compose |
-| **Orchestration** | Kubernetes |
-| **Live Reload** | [Air](https://github.com/air-verse/air) |
+| Category                 | Technology                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| **Language**             | Go 1.24+                                                                           |
+| **GraphQL**              | [gqlgen](https://gqlgen.com/) — schema-first code generation                       |
+| **Federation Engine**    | [wundergraph/graphql-go-tools v2](https://github.com/wundergraph/graphql-go-tools) |
+| **ORM**                  | [Ent](https://entgo.io/) — entity framework with code generation                   |
+| **Dependency Injection** | [Uber FX](https://github.com/uber-go/fx)                                           |
+| **Messaging**            | [NATS](https://nats.io/) — cloud-native pub/sub                                    |
+| **Service Discovery**    | [etcd](https://etcd.io/) — distributed key-value store                             |
+| **Caching**              | [Redis](https://redis.io/)                                                         |
+| **Database**             | [PostgreSQL](https://www.postgresql.org/)                                          |
+| **Migrations**           | [Atlas CLI](https://atlasgo.io/)                                                   |
+| **Logging**              | [Uber Zap](https://github.com/uber-go/zap) + Loki + Vector                         |
+| **Tracing**              | OpenTelemetry + Grafana Tempo                                                      |
+| **Metrics**              | Prometheus + Grafana                                                               |
+| **HTTP Framework**       | [Fiber](https://gofiber.io/)                                                       |
+| **Containerization**     | Docker + Docker Compose                                                            |
+| **Orchestration**        | Kubernetes                                                                         |
+| **Live Reload**          | [Air](https://github.com/air-verse/air)                                            |
 
 ---
 
@@ -248,12 +255,12 @@ federation-go/
 
 ### Prerequisites
 
-| Requirement | Version |
-|---|---|
-| Go | 1.24+ |
-| Docker & Docker Compose | Latest |
-| Atlas CLI | Latest |
-| Air (live-reload) | Latest |
+| Requirement             | Version |
+| ----------------------- | ------- |
+| Go                      | 1.24+   |
+| Docker & Docker Compose | Latest  |
+| Atlas CLI               | Latest  |
+| Air (live-reload)       | Latest  |
 
 ### 1. Install Tools
 
@@ -303,8 +310,8 @@ make run-gateway
 
 ### 5. Access Playgrounds
 
-| Service | GraphQL Endpoint | Playground |
-|---|---|---|
+| Service     | GraphQL Endpoint                | Playground                         |
+| ----------- | ------------------------------- | ---------------------------------- |
 | **Gateway** | `http://localhost:8080/graphql` | `http://localhost:8080/playground` |
 | **Account** | `http://localhost:8082/graphql` | `http://localhost:8082/playground` |
 | **Catalog** | `http://localhost:8083/graphql` | `http://localhost:8083/playground` |
@@ -317,19 +324,20 @@ make run-gateway
 
 The federation gateway composes the supergraph from all registered subgraphs. Send all client queries here.
 
-| Endpoint | Description |
-|---|---|
-| `POST /graphql` | Unified federated GraphQL endpoint |
-| `GET /playground` | GraphQL IDE |
-| `GET /health` | Aggregated health status |
-| `GET /health/live` | Liveness probe |
-| `GET /health/ready` | Readiness probe |
+| Endpoint            | Description                        |
+| ------------------- | ---------------------------------- |
+| `POST /graphql`     | Unified federated GraphQL endpoint |
+| `GET /playground`   | GraphQL IDE                        |
+| `GET /health`       | Aggregated health status           |
+| `GET /health/live`  | Liveness probe                     |
+| `GET /health/ready` | Readiness probe                    |
 
 ### Account Service `:8082`
 
 Manages users and authentication.
 
 **GraphQL Operations:**
+
 ```graphql
 # Queries
 users(after, first, before, last, orderBy, where: UserFilter): UserPaginatedConnection!
@@ -353,6 +361,7 @@ userUpdated(userID: ID!): UserEntity!
 Manages products and categories.
 
 **GraphQL Operations:**
+
 ```graphql
 # Queries
 products(after, first, before, last, orderBy, where: ProductFilter): ProductConnection!
@@ -381,11 +390,11 @@ GraphQL Client ↔ Gateway ↔ NATS Message Broker ↔ Account / Catalog Service
 
 ### Available Directives
 
-| Directive | Usage | Description |
-|---|---|---|
-| `@edfs_Publish` | On mutations | Auto-publishes event after successful mutation |
-| `@edfs_Subscribe` | On subscriptions | Subscribes to a NATS topic |
-| `@edfs_Request` | On mutations | Fires async CQRS command |
+| Directive         | Usage            | Description                                    |
+| ----------------- | ---------------- | ---------------------------------------------- |
+| `@edfs_Publish`   | On mutations     | Auto-publishes event after successful mutation |
+| `@edfs_Subscribe` | On subscriptions | Subscribes to a NATS topic                     |
+| `@edfs_Request`   | On mutations     | Fires async CQRS command                       |
 
 ### Example Usage
 
@@ -440,14 +449,14 @@ For the full migration guide, see [`services/account/MIGRATION.md`](services/acc
 
 The full observability stack is included in `docker-compose.yml`:
 
-| Tool | Port | Purpose |
-|---|---|---|
-| **Grafana** | `3000` | Unified dashboards (logs + traces + metrics) |
-| **Prometheus** | `9090` | Metrics scraping & storage |
-| **Grafana Tempo** | `3200` | Distributed tracing backend |
-| **Grafana Loki** | `3100` | Log aggregation |
-| **Vector** | — | Log pipeline: NATS → Loki |
-| **OTLP Collector** | `4317 / 4318` | OpenTelemetry traces & metrics ingestion |
+| Tool               | Port          | Purpose                                      |
+| ------------------ | ------------- | -------------------------------------------- |
+| **Grafana**        | `3000`        | Unified dashboards (logs + traces + metrics) |
+| **Prometheus**     | `9090`        | Metrics scraping & storage                   |
+| **Grafana Tempo**  | `3200`        | Distributed tracing backend                  |
+| **Grafana Loki**   | `3100`        | Log aggregation                              |
+| **Vector**         | —             | Log pipeline: NATS → Loki                    |
+| **OTLP Collector** | `4317 / 4318` | OpenTelemetry traces & metrics ingestion     |
 
 ### Log Pipeline
 
@@ -533,18 +542,18 @@ make test
 
 ### Makefile Reference
 
-| Command | Description |
-|---|---|
-| `make setup` | Install all dev tools |
-| `make infra-up` | Start Docker infrastructure |
-| `make infra-down` | Stop Docker infrastructure |
-| `make run-service` | Start subgraph services with hot-reload |
+| Command            | Description                              |
+| ------------------ | ---------------------------------------- |
+| `make setup`       | Install all dev tools                    |
+| `make infra-up`    | Start Docker infrastructure              |
+| `make infra-down`  | Stop Docker infrastructure               |
+| `make run-service` | Start subgraph services with hot-reload  |
 | `make run-gateway` | Start federation gateway with hot-reload |
-| `make build` | Build all service binaries |
-| `make generate` | Regenerate GraphQL & Ent code |
-| `make test` | Run all tests |
-| `make lint` | Lint all services |
-| `make clean` | Remove generated artifacts |
+| `make build`       | Build all service binaries               |
+| `make generate`    | Regenerate GraphQL & Ent code            |
+| `make test`        | Run all tests                            |
+| `make lint`        | Lint all services                        |
+| `make clean`       | Remove generated artifacts               |
 
 ---
 
@@ -567,6 +576,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 
 ## 🙏 Acknowledgments
+
+This project stands on the shoulders of outstanding open-source work. Sincere thanks to every author, maintainer, and contributor behind the following projects and ideas.
 
 - [gqlgen](https://gqlgen.com/) — GraphQL implementation for Go
 - [wundergraph/graphql-go-tools](https://github.com/wundergraph/graphql-go-tools) — High-performance GraphQL federation engine
