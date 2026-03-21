@@ -1,0 +1,15 @@
+.git
+.air
+.air.toml
+tmp/
+build/
+bin/
+deployments/
+docs/
+*.md
+Makefile
+docker-compose.yml
+.gitignore
+.dockerignore
+terraform/
+.github/
