@@ -586,3 +586,13 @@ This project stands on the shoulders of outstanding open-source work. Sincere th
 - [NATS](https://nats.io/) — Cloud-native messaging
 - [Atlas](https://atlasgo.io/) — Database migration tool
 - [Grafana OSS Stack](https://grafana.com/) — Loki, Tempo, Grafana
+
+---
+
+<div align="center">
+
+⭐ If this project helped you, please consider giving it a star!
+
+**Built with ❤️ by Liam Le — Software Engineer**
+
+</div>
