@@ -308,6 +308,13 @@ make run-service
 make run-gateway
 ```
 
+### 5. Verify Playground SRI hash for the embedded Apollo Sandbox playground has not changed:
+
+```
+CDN_FILE=https://embeddable-sandbox.cdn.apollographql.com/06401c5415c2df085278716decfe48b0f1ba5b7c/embeddable-sandbox.umd.production.min.js
+curl -s $CDN_FILE | openssl dgst -sha256 -binary | openssl base64 -A; echo
+```
+
 ### 5. Access Playgrounds
 
 | Service     | GraphQL Endpoint                | Playground                         |

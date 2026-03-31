@@ -46,7 +46,7 @@ setup: ## Setup development environment
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@go install github.com/99designs/gqlgen@latest
 	@go install github.com/air-verse/air@latest
-	@npm install meta concurrently
+	@npm install -g meta concurrently
 	@curl -sSf https://atlasgo.sh | sh
 	@mkdir -p $(BIN_DIR) $(DOCKER_DIR) $(KUBERNETES_DIR)
 	@echo "$(GREEN)Development environment setup complete!$(NC)"
