@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "concurrently": "^9.1.2",
+    "concurrently": "^9.2.1",
     "meta": "^2.2.25"
   }
 }
