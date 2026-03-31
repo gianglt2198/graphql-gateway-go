@@ -11,7 +11,7 @@ This guide demonstrates how to implement **Event Driven Federated Subscriptions 
 ✅ **Type-safe** - Events tied to GraphQL operations and types  
 ✅ **Federation-ready** - Automatic federation key handling  
 ✅ **Clean** - No centralized event definitions needed  
-✅ **Dynamic** - Topic filtering and variable substitution  
+✅ **Dynamic** - Topic filtering and variable substitution
 
 ## EDFS Architecture
 
@@ -24,7 +24,7 @@ GraphQL Client ↔ Gateway (Router) ↔ NATS Message Broker ↔ Services (Accoun
 Instead of manually writing event publishers and subscribers, you simply add directives to your GraphQL schema:
 
 - `@eventPublish` - Automatically publishes events after successful mutations
-- `@eventSubscribe` - Automatically subscribes to NATS topics for subscriptions  
+- `@eventSubscribe` - Automatically subscribes to NATS topics for subscriptions
 - `@eventRequest` - Triggers event requests for command patterns
 - `@openfed_subscriptionFilter` - Enables dynamic topic filtering
 
@@ -49,8 +49,8 @@ services:
 nats:
   endpoints:
     - "nats://localhost:4223"
-  
-# services/gateway/config.yml  
+
+# services/gateway/config.yml
 nats:
   endpoints:
     - "nats://localhost:4223"
@@ -63,11 +63,11 @@ nats:
 ```graphql
 extend type Mutation {
   # Automatically publishes to "entities.User.created" after successful mutation
-  createUser(input: CreateUserInput!): User 
+  createUser(input: CreateUserInput!): User
     @eventPublish(topic: "entities.User.created", entityKey: "id")
-    
-  # Automatically publishes to "entities.User.updated" 
-  updateUser(id: ID!, input: UpdateUserInput!): User 
+
+  # Automatically publishes to "entities.User.updated"
+  updateUser(id: ID!, input: UpdateUserInput!): User
     @eventPublish(topic: "entities.User.updated", entityKey: "id")
 }
 ```
@@ -77,9 +77,9 @@ extend type Mutation {
 ```graphql
 extend type Subscription {
   # Subscribes to all User entity events
-  userEvents: User 
+  userEvents: User
     @eventSubscribe(topic: "entities.User.*", sourceName: "account")
-    
+
   # Dynamic subscription with filtering
   userEventsForId(userId: ID!): User
     @eventSubscribe(topic: "entities.User.{userId}", sourceName: "account")
@@ -105,18 +105,18 @@ extend type Mutation {
 # EDFS directives are automatically included by federation manager
 
 extend type Mutation {
-  createUser(input: CreateUserInput!): User 
+  createUser(input: CreateUserInput!): User
     @eventPublish(topic: "entities.User.created", entityKey: "id")
-    
-  updateUser(id: ID!, input: UpdateUserInput!): User 
+
+  updateUser(id: ID!, input: UpdateUserInput!): User
     @eventPublish(topic: "entities.User.updated", entityKey: "id")
-    
+
   authenticateUser(email: String!, password: String!): AuthPayload
     @eventPublish(topic: "entities.User.authenticated", entityKey: "user.id")
 }
 
 extend type Subscription {
-  userEvents: User 
+  userEvents: User
     @eventSubscribe(topic: "entities.User.*", sourceName: "account")
 }
 ```
@@ -128,7 +128,7 @@ extend type Subscription {
   # Gateway subscribes to all entity events for real-time federation
   allEntityEvents: EntityEvent
     @eventSubscribe(topic: "entities.*", sourceName: "gateway")
-    
+
   # Service health monitoring
   serviceHealth: ServiceStatus
     @eventSubscribe(topic: "services.*.health", sourceName: "monitoring")
@@ -148,15 +148,17 @@ type EntityEvent {
 EDFS uses consistent topic naming patterns:
 
 ### Entity Events
+
 ```
 entities.User.created      # User creation events
-entities.User.updated      # User update events  
+entities.User.updated      # User update events
 entities.User.{userId}     # User-specific events (dynamic filtering)
 entities.Product.*         # All Product events
 entities.*                 # All entity events
 ```
 
-### Service Events  
+### Service Events
+
 ```
 services.account.health    # Account service health
 services.catalog.requests  # Catalog service requests
@@ -164,6 +166,7 @@ services.*.health          # All service health events
 ```
 
 ### Gateway Events
+
 ```
 gateway.requests           # Gateway request events
 gateway.responses          # Gateway response events
@@ -228,7 +231,7 @@ Events automatically include federation keys:
 ```json
 {
   "id": "user_123",
-  "__typename": "User", 
+  "__typename": "User",
   "eventType": "created",
   "timestamp": "2024-01-15T10:30:00Z",
   "data": {
@@ -237,6 +240,10 @@ Events automatically include federation keys:
     "name": "John Doe"
   }
 }
+```
+
+```bash
+nats pub "userUpdated.userge5EcUHUUVnHRUDR6" '{"id":"userge5EcUHUUVnHRUDR6","__typename":"UserEntity"}'
 ```
 
 ### CQRS Pattern Implementation
@@ -261,13 +268,15 @@ extend type Subscription {
 ### Compared to Manual Event Handling
 
 **EDFS Approach:**
+
 ```graphql
 # Simply add directive to schema
-createUser(input: CreateUserInput!): User 
+createUser(input: CreateUserInput!): User
   @eventPublish(topic: "entities.User.created", entityKey: "id")
 ```
 
 **Manual Approach:**
+
 ```go
 // Requires custom event handling code in resolver
 func (r *mutationResolver) CreateUser(ctx context.Context, input CreateUserInput) (*User, error) {
@@ -275,14 +284,14 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input CreateUserInput
     if err != nil {
         return nil, err
     }
-    
+
     // Manual event publishing
     r.eventBus.Publish(ctx, "entities.User.created", map[string]interface{}{
         "id": user.ID,
         "__typename": "User",
         "data": user,
     })
-    
+
     return user, nil
 }
 ```
@@ -299,7 +308,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input CreateUserInput
 If you have existing manual event handling code, you can migrate to EDFS:
 
 1. **Add directives** to your GraphQL schema
-2. **Remove manual event publishing** from resolvers  
+2. **Remove manual event publishing** from resolvers
 3. **Update subscriptions** to use `@eventSubscribe`
 4. **Test** that events still flow correctly
 
@@ -339,4 +348,4 @@ The EDFS system is backward compatible and can coexist with manual event handlin
 
 ---
 
-EDFS provides a powerful, declarative approach to real-time GraphQL subscriptions that eliminates the need for manual event handling while maintaining full federation compatibility and type safety. 
+EDFS provides a powerful, declarative approach to real-time GraphQL subscriptions that eliminates the need for manual event handling while maintaining full federation compatibility and type safety.
