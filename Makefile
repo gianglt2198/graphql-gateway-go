@@ -16,7 +16,7 @@ KUBERNETES_DIR := $(DEPLOYMENTS_DIR)/kubernetes
 
 # Service names
 SERVICES := account catalog
-GATEWAYS := gateway aggregator
+GATEWAYS := gateway
 
 # Go build flags
 LDFLAGS := -ldflags "-X main.version=$(VERSION) -X main.buildTime=$(BUILD_TIME) -X main.goVersion=$(GO_VERSION)"
@@ -105,6 +105,10 @@ tidy: ## Tidy go modules for all services
 	@for service in $(SERVICES); do \
 		echo "$(YELLOW)Tidying $$service modules...$(NC)"; \
 		cd services/$$service && go mod tidy && cd ../..; \
+	done
+	@for gateway in $(GATEWAYS); do \
+		echo "$(YELLOW)Tidying $$gateway modules...$(NC)"; \
+		cd services/$$gateway && go mod tidy && cd ../..; \
 	done
 	@echo "$(GREEN)All modules tidied!$(NC)"
 

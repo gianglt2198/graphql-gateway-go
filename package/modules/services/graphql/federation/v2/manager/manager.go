@@ -115,7 +115,7 @@ func New(params FederationManagerParams) FederationManager {
 				"/graphql",
 				playground.WithApolloSandboxEndpointIsEditable(true),
 				playground.WithApolloSandboxInitialStateIncludeCookies(true),
-				playground.WithApolloSandboxInitialStatePollForSchemaUpdates(true),
+				// playground.WithApolloSandboxInitialStatePollForSchemaUpdates(true),
 			)),
 		)
 	}
