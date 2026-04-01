@@ -55,6 +55,10 @@ func Schedule(cronspec string, task *queue.Task) Schedulable {
 }
 
 func Run(log *logging.Logger, lifecycle fx.Lifecycle, scheduler *Scheduler) {
+	if scheduler == nil {
+		return
+	}
+
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			if scheduler == nil {
