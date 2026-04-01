@@ -10,7 +10,7 @@ cache:
     - roles:
         - frontend-search
       memcached:
-        host: memcached:11211
+        addresses: memcached:11211
 
 query_frontend:
   search:

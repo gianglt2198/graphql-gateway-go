@@ -6,6 +6,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 
 	"github.com/gianglt2198/federation-go/package/infras/monitoring/logging"
 	"github.com/gianglt2198/federation-go/package/utils"
@@ -86,6 +87,7 @@ func (s *userService) FindUserByEmail(ctx context.Context, email string) (*model
 }
 
 func (s *userService) FindUsers(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.UserOrder, where *model.UserFilter) (*model.UserPaginatedConnection, error) {
+	s.log.GetWrappedLogger(ctx).Info("Finding users", zap.Any("dto", where))
 	filter := func(q *ent.UserQuery) (*ent.UserQuery, error) {
 		if where != nil {
 			if len(where.Ids) > 0 {

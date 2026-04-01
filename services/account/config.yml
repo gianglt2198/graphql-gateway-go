@@ -1,7 +1,7 @@
 app:
   name: "account"
   version: "0.1.0"
-  environment: "development"
+  environment: "production"
   debug: false
 
 database:

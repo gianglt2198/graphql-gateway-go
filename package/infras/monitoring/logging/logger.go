@@ -29,10 +29,10 @@ func NewLogger(config config.AppConfig, natsConfg config.NATSConfig) *Logger {
 
 		if natsConfg.Enabled {
 			natsCore := NewNatsCore(natsConfg) // Replace with your NATS logging subject
-			natsLogCore := zapcore.NewCore(encoder, natsCore, zapcore.ErrorLevel)
+			natsLogCore := zapcore.NewCore(encoder, natsCore, zapcore.InfoLevel)
 			coreArr = append(coreArr, natsLogCore)
 		} else {
-			consoleCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), zapcore.ErrorLevel)
+			consoleCore := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), zapcore.InfoLevel)
 			coreArr = append(coreArr, consoleCore)
 		}
 	} else {
